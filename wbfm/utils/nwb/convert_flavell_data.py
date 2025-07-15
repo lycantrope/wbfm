@@ -8,13 +8,11 @@ from datetime import datetime
 from hdmf.backends.hdf5.h5_utils import H5DataIO
 import glob
 import argparse
-from wbfm.utils.nwb.utils_nwb_export import CustomDataChunkIterator, build_optical_channel_objects, _zimmer_microscope_device, compute_centroids_parallel, df_to_nwb_tracking
+from wbfm.utils.nwb.utils_nwb_export import CustomDataChunkIterator, build_optical_channel_objects, _zimmer_microscope_device, add_centroid_data_to_df_tracking, df_to_nwb_tracking
 import dask.array as da
 from tqdm import tqdm
 import json
 import pandas as pd
-import logging
-import itertools
 
 
 def iter_volumes(base_dir, n_start, n_timepoints, channel=None, segmentation=False):
@@ -148,7 +146,7 @@ def count_valid_segmentations(base_dir, n_timepoints):
 def dask_stack_volumes(volume_iter, frame_shape):
     """Stack a generator of volumes into a dask array."""
     # Each block is a single volume (3D), stacked along axis=0 (time)
-    return da.stack([da.from_array(vol, chunks=frame_shape) for vol in volume_iter], axis=0)
+    return da.stack(volume_iter, axis=0)
 
 
 def create_nwb_file_only_images(session_description, identifier, session_start_time, device_name, imaging_rate):
@@ -286,37 +284,7 @@ def convert_flavell_to_nwb(
     if df_tracking.empty:
         raise RuntimeError("No tracking data found in the specified base directory.")
     
-    # This doesn't have centroid information, so add it in
-    centroids_dict = compute_centroids_parallel(seg_dask)
-    # Based on the segmentation ids in tracking_df, create the xyz columns that should be added
-    all_neurons = list(df_tracking.columns.get_level_values(0).unique())
-    # A dict with 3 entries per neuron: (neuron, x), (neuron, y), (neuron, z) -> (respective array)
-    coord_names = ['x', 'y', 'z']
-    all_keys = itertools.product(all_neurons, coord_names)
-    def _init_nan_numpy():
-        _array = np.empty(np.max(df_tracking.index.values))  # Should not be the shape of df_tracking, which might have empty rows
-        _array[:] = np.nan
-        return _array
-    mapped_centroids_dict = {k: _init_nan_numpy() for k in all_keys}
-    
-    # Note that df_tracking is 1-indexed, so the index will have to be fixed later
-    for t, these_centroids in tqdm(centroids_dict.items(), desc="Mapping centroids to segmentation"):
-        for neuron in all_neurons:
-            try:
-                raw_seg = df_tracking.loc[t+1, (neuron, 'raw_segmentation_id')]
-            except KeyError:
-                raw_seg = np.nan
-            if np.isnan(raw_seg):
-                continue
-            try:
-                this_centroid = these_centroids[int(raw_seg)]
-            except KeyError:
-                logging.error(f"Ground truth was annotated as {int(raw_seg)} at t={t}, but it doesn't exist in the image")
-            for _name, _c in zip(coord_names, this_centroid):
-                mapped_centroids_dict[(neuron, _name)][t] = _c
-    # Convert to dataframe, then combine with original tracking dataframe
-    df_centroids = pd.DataFrame(mapped_centroids_dict)
-    df_tracking = pd.concat([df_centroids, df_tracking], axis=1)
+    df_tracking = add_centroid_data_to_df_tracking(seg_dask, df_tracking, df_tracking_offset=1)
     
     position, dt = df_to_nwb_tracking(df_tracking)
     if position is not None:

@@ -27,7 +27,7 @@ from tifffile import tifffile
 from tqdm.auto import tqdm
 from wbfm.utils.external.utils_pandas import convert_binary_columns_to_one_hot
 
-from wbfm.utils.general.postprocessing.utils_imputation import df_of_only_locations
+import itertools
 from wbfm.utils.projects.finished_project_data import ProjectData
 from wbfm.utils.external.utils_neuron_names import int2name_neuron
 from wbfm.utils.projects.utils_project_status import check_all_needed_data_for_step
@@ -1476,3 +1476,41 @@ def compute_centroids_parallel(seg_dask, intensity_dask=None):
     # Assemble into dict
     centroids = {t: centroids_t for t, centroids_t in results}
     return centroids
+
+
+def add_centroid_data_to_df_tracking(seg_dask, df_tracking, df_tracking_offset=0):
+    """df_tracking should have a column that matches the raw segmentation id in each time point to the true or tracked ids"""
+
+    # This doesn't have centroid information, so add it in
+    centroids_dict = compute_centroids_parallel(seg_dask)
+    # Based on the segmentation ids in tracking_df, create the xyz columns that should be added
+    all_neurons = list(df_tracking.columns.get_level_values(0).unique())
+    # A dict with 3 entries per neuron: (neuron, x), (neuron, y), (neuron, z) -> (respective array)
+    coord_names = ['x', 'y', 'z']
+    all_keys = itertools.product(all_neurons, coord_names)
+    def _init_nan_numpy():
+        _array = np.empty(np.max(df_tracking.index.values))  # Should not be the shape of df_tracking, which might have empty rows
+        _array[:] = np.nan
+        return _array
+    mapped_centroids_dict = {k: _init_nan_numpy() for k in all_keys}
+    
+    # Note that df_tracking is 1-indexed, so the index will have to be fixed later
+    for t, these_centroids in tqdm(centroids_dict.items(), desc="Mapping centroids to segmentation"):
+        for neuron in all_neurons:
+            try:
+                raw_seg = df_tracking.loc[t+df_tracking_offset, (neuron, 'raw_segmentation_id')]
+            except KeyError:
+                raw_seg = np.nan
+            if np.isnan(raw_seg):
+                continue
+            try:
+                this_centroid = these_centroids[int(raw_seg)]
+            except KeyError:
+                logging.error(f"Ground truth was annotated as {int(raw_seg)} at t={t}, but it doesn't exist in the image")
+            for _name, _c in zip(coord_names, this_centroid):
+                mapped_centroids_dict[(neuron, _name)][t] = _c
+    # Convert to dataframe, then combine with original tracking dataframe
+    df_centroids = pd.DataFrame(mapped_centroids_dict)
+    df_tracking = pd.concat([df_centroids, df_tracking], axis=1)
+
+    return df_tracking
