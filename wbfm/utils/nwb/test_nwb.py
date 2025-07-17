@@ -9,7 +9,7 @@ class TestNWB:
     """
     Updates from Andrew Kirjner
 
-    Copied (with minor chnages) from Zimmer wbfm's copy from: https://github.com/focolab/NWBelegans/blob/main/check_NWB.py
+    Copied (with minor changes) from Zimmer wbfm's copy from: https://github.com/focolab/NWBelegans/blob/main/check_NWB.py
 
     """
 
@@ -53,6 +53,9 @@ class TestNWB:
             has_calcium_imaging = False
             has_calcium_traces = False
             has_segmentation = False
+            has_segmentation_untracked = False
+            has_centroids = False
+            has_segmentation_ids = False
             try:
                 image = read_nwbfile.acquisition['NeuroPALImageRaw'].data[:]  # get the neuroPAL image as a np array
                 channels = read_nwbfile.acquisition['NeuroPALImageRaw'].RGBW_channels[
@@ -72,11 +75,12 @@ class TestNWB:
                     chan_refs = read_nwbfile.processing['NeuroPAL']['order_optical_channels'].channels[:]
                 has_neuropal = True
             except (KeyError, TypeError) as e:
-                print(f"Error with neuropal stacks: {e}")
+                pass
+                # print(f"Error with neuropal stacks: {e}")
 
-                exc_type, exc_obj, exc_tb = sys.exc_info()
-                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                print(exc_type, fname, exc_tb.tb_lineno)
+                # exc_type, exc_obj, exc_tb = sys.exc_info()
+                # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                # print(exc_type, fname, exc_tb.tb_lineno)
 
             try:
                 # load the first 15 frames of the calcium images
@@ -85,7 +89,8 @@ class TestNWB:
                 print(f"Size of calcium imaging data: {size}")
                 has_calcium_imaging = True
             except KeyError as e:
-                print(f"Error with calcium imaging: {e}")
+                # print(f"Error with calcium imaging: {e}")
+                pass
 
             try:
                 activity = read_nwbfile.processing['CalciumActivity']
@@ -97,11 +102,12 @@ class TestNWB:
                     fluor = activity['SignalRawFluor']['SignalCalciumImResponseSeries'].data
                 else:
                     raise KeyError
-                print(f"Size of calcium imaging traces: {fluor.shape}")
+                # print(f"Size of calcium imaging traces: {fluor.shape}")
                 has_calcium_traces = True
 
             except KeyError as e:
-                print(f"Error with calcium traces: {e}")
+                # print(f"Error with calcium traces: {e}")
+                pass
 
             try:
                 activity = read_nwbfile.processing['CalciumActivity']
@@ -110,9 +116,6 @@ class TestNWB:
                         # Try to access the segmentation data in my format
                         calc_seg = activity['CalciumSeriesSegmentation'].data
                         has_segmentation = True
-                        # if 'Seg_tpoint_0' in activity['CalciumSeriesSegmentation']:
-                        #     calc_seg = activity['CalciumSeriesSegmentation']['Seg_tpoint_0'].voxel_mask[:]
-                        #     has_segmentation = True
                     except (TypeError, AttributeError):
                         if 'SegmentationVol0' in activity.data_interfaces:
                             calc_seg = activity['CalciumSeriesSegmentation']['SegmentationVol0'].voxel_mask[:]
@@ -127,8 +130,32 @@ class TestNWB:
                         exc_type, exc_obj, exc_tb = sys.exc_info()
                         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                         print(exc_type, fname, exc_tb.tb_lineno)
+
+                if 'CalciumSeriesSegmentationUntracked' in activity.data_interfaces:
+                    try:
+                        calc_seg = activity['CalciumSeriesSegmentationUntracked'].data
+                        has_segmentation_untracked = True
+                    except:
+                        pass
+                        
+                if 'NeuronCentroids' in activity.data_interfaces:
+                    try:
+                        from wbfm.utils.nwb.utils_nwb_export import load_per_neuron_position
+                        calc_seg = load_per_neuron_position(activity['NeuronCentroids'])
+                        has_centroids = True
+                    except:
+                        pass
+                        
+                if 'NeuronSegmentationID' in activity.data_interfaces:
+                    try:
+                        calc_seg = activity['NeuronSegmentationID'].to_dataframe()
+                        has_segmentation_ids = True
+                    except:
+                        pass
+                        
+
             except (TypeError, KeyError) as e:
-                print(f"Error with segmentation: {e}")
+                # print(f"Error with segmentation: {e}")
 
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
@@ -136,11 +163,18 @@ class TestNWB:
                 # print(read_nwbfile.processing['CalciumActivity']['CalciumSeriesSegmentation'].keys())
 
 
-        print(f"Found the following data in the NWB file: \n"
-              f"NeuroPAL image:         {has_neuropal}\n"
+        print(f"==========================================\n"
+              f"Found the following data in the NWB file: \n"
+              f"===============Fluorescence===============\n"
               f"Video calcium imaging:  {has_calcium_imaging}\n"
-              f"Video calcium traces:   {has_calcium_traces}\n"
+              f"Raw video segmentation: {has_segmentation_untracked}\n"
+              f"Neuron centroids:       {has_centroids}\n"
+              f"Segmentation IDs:       {has_segmentation_ids}\n"
               f"Video segmentation:     {has_segmentation}\n"
+              f"Video calcium traces:   {has_calcium_traces}\n"
+              f"===============  Neuropal  ===============\n"
+              f"NeuroPAL image:         {has_neuropal}\n"
+              f"===============  Behavior  ===============\n"
               f"Behavior video:         (Not yet implemented)\n"
               f"Behavior time series:   (Not yet implemented)\n")
 

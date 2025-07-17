@@ -30,13 +30,13 @@ def reindex_segmentation(DEBUG, all_matches, seg_masks, new_masks, min_confidenc
         all_lut_keys = [0, 1]
         print("DEBUG mode: only doing first 2 volumes")
     # Apply lookup tables to each volume
-    with tqdm(total=len(all_lut)) as pbar:
+    with tqdm(total=len(all_lut), desc="Reindexing segmentation") as pbar:
         def parallel_func(i):
             lut = all_lut[i]
             try:
                 new_masks[i, ...] = lut[seg_masks[i, ...]]
             except IndexError as e:
-                logging.error(f"IndexError for volume {i}: {e}")
+                logging.error(f"IndexError for volume {i}: {e}; removing segmentation for that image")
                 # If the index is out of bounds, then probably the image is corrupted
                 new_masks[i, ...] = 0
 
@@ -60,7 +60,9 @@ def _unpack_config_reindexing(traces_cfg, raw_seg_masks, project_cfg):
     # Check if the raw_seg_masks are zarr or dask
     try:
         # If it is a zarr or numpy array, then we can just open it like this
-        new_masks = zarr.open_like(raw_seg_masks, path=str(out_fname))
+        chunks = (1, ) + raw_seg_masks.shape[1:]
+        new_masks = zarr.open_like(raw_seg_masks, chunks=chunks, path=str(out_fname))
+        assert new_masks.chunks[0] == 1, "Chunking must be (1, ..., ...) for safe parallel writes"
     except (AttributeError, TypeError):
         # Otherwise we need to copy the metadata manually
         project_cfg.logger.info(f"Raw segmentation masks are not zarr, but {type(raw_seg_masks)}; creating new zarr array")

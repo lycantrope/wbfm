@@ -2,6 +2,10 @@ import concurrent
 import logging
 import shutil
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
+
+from imutils import MicroscopeDataReader
+
 from wbfm.utils.external.utils_pandas import combine_columns_with_suffix
 
 import tables
@@ -801,24 +805,27 @@ class ProjectData:
         obj.project_config._preprocessing_class = preprocessing_settings
         if 'CalciumImageSeries' in nwb_obj.acquisition:
             # Transpose data from TXYZC to TZXY (splitting the channel)
-            obj.red_data = da.from_array(nwb_obj.acquisition['CalciumImageSeries'].data, lock=True)[..., 0].transpose((0, 3, 1, 2))
-            obj.green_data = da.from_array(nwb_obj.acquisition['CalciumImageSeries'].data, lock=True)[..., 1].transpose((0, 3, 1, 2))
+            dat = nwb_obj.acquisition['CalciumImageSeries'].data
+            chunks = (1, ) + dat.shape[1:-1] + (1,)
+            obj.red_data = da.from_array(dat, chunks=chunks)[..., 0].transpose((0, 3, 1, 2))
+            obj.green_data = da.from_array(dat, chunks=chunks)[..., 1].transpose((0, 3, 1, 2))
             print(f"Loaded red and green data from NWB file: {obj.red_data.shape}")
 
             # Load this into the raw data as well; needed for certain steps
-            preprocessing_settings._raw_red_data = da.from_array(nwb_obj.acquisition['CalciumImageSeries'].data, lock=True)[..., 0].transpose((0, 3, 1, 2))
-            preprocessing_settings._raw_green_data = da.from_array(nwb_obj.acquisition['CalciumImageSeries'].data, lock=True)[..., 1].transpose(
+            preprocessing_settings._raw_red_data = da.from_array(dat, chunks=chunks)[..., 0].transpose((0, 3, 1, 2))
+            preprocessing_settings._raw_green_data = da.from_array(dat, chunks=chunks)[..., 1].transpose(
                 (0, 3, 1, 2))
         if 'RawCalciumImageSeries' in nwb_obj.acquisition:
             # Load this, but it's not actually part of the main ProjectData class
             # Transpose data from TXYZC to TZXY (splitting the channel)
-            preprocessing_settings._raw_red_data = da.from_array(nwb_obj.acquisition['RawCalciumImageSeries'].data, lock=True)[..., 0].transpose((0, 3, 1, 2))
-            preprocessing_settings._raw_green_data = da.from_array(nwb_obj.acquisition['RawCalciumImageSeries'].data, lock=True)[..., 1].transpose(
+            chunks = (1, ) + nwb_obj.acquisition['RawCalciumImageSeries'].data.shape[1:-1] + (1,)
+            preprocessing_settings._raw_red_data = da.from_array(nwb_obj.acquisition['RawCalciumImageSeries'].data, chunks=chunks)[..., 0].transpose((0, 3, 1, 2))
+            preprocessing_settings._raw_green_data = da.from_array(nwb_obj.acquisition['RawCalciumImageSeries'].data, chunks=chunks)[..., 1].transpose(
                 (0, 3, 1, 2))
 
         # Note that there should always be 'CalciumActivity' but it may be a stub
-        # Load the traces, and copy to the tracks using the same dataframes (they should all have xyz info)
         try:
+            # Load the traces, and the tracks using the same dataframes (they should all have xyz info)
             both_df_traces = convert_nwb_to_trace_dataframe(nwb_obj)
             # There may not be a reference, but there is always the signal
             obj.green_traces = both_df_traces['Signal']
@@ -826,48 +833,21 @@ class ProjectData:
             obj.final_tracks = obj.red_traces.copy()
 
         except KeyError as e:
-            obj.final_tracks = None
             obj.logger.warning(f"Could not load traces from NWB file: {e}")
 
-        # If the traces aren't found, try to load the tracks alone
-        if obj.final_tracks is None:
-            try:
-                from wbfm.utils.nwb.utils_nwb_export import load_per_neuron_position
-
-                activity = nwb_obj.processing['CalciumActivity']
-                centroids = load_per_neuron_position(activity['NeuronCentroids'])
-                seg_ids = activity['NeuronSegmentationID'].to_dataframe()
-                # Add a second layer to the columns to match format
-                seg_ids.columns = pd.MultiIndex.from_product([seg_ids.columns, ['raw_segmentation_id']])
-                # If the top level column names are integers, make them neuron_XYZ like my code expects
-                df_tracking = pd.concat([centroids, seg_ids], axis=1)
-
-                new_cols = []
-                for col in df_tracking.columns:
-                    if isinstance(col[0], int) or (isinstance(col[0], str) and 'neuron' not in col[0]):
-                        new_col = (int2name_neuron(int(col[0]), ignore_error=True), col[1])
-                    else:
-                        new_col = col
-                    new_cols.append(new_col)
-                df_tracking.columns = pd.MultiIndex.from_tuples(new_cols)
-                
-                obj.final_tracks = df_tracking
-                obj.intermediate_global_tracks = df_tracking
-                obj.logger.warning("Loaded both final tracks and intermediate tracks as the same dataframe")
-
-            except KeyError as e:
-                obj.logger.warning(f"Could not load tracks from NWB file: {e}")
-
-        # Segmentation
         try:
             # Transpose data from TXYZ to TZXY
-            obj.segmentation = da.from_array(nwb_obj.processing['CalciumActivity']['CalciumSeriesSegmentation'].data).transpose((0, 3, 1, 2))
+            dat = nwb_obj.processing['CalciumActivity']['CalciumSeriesSegmentation'].data
+            chunks = (1, ) + dat.shape[1:]
+            obj.segmentation = da.from_array(dat, chunks=chunks).transpose((0, 3, 1, 2))
         except (KeyError, AttributeError) as e:
             obj.logger.warning(f"Could not load segmentation from NWB file: {e}")
 
         try:
             # Transpose data from TXYZ to TZXY
-            obj.raw_segmentation = da.from_array(nwb_obj.processing['CalciumActivity']['CalciumSeriesSegmentationUntracked'].data).transpose((0, 3, 1, 2))
+            dat = nwb_obj.processing['CalciumActivity']['RawCalciumSeriesSegmentation'].data
+            chunks = (1, ) + dat.shape
+            obj.raw_segmentation = da.from_array(dat, chunks=chunks).transpose((0, 3, 1, 2))
         except (KeyError, AttributeError) as e:
             # Set to be equal to the segmentation, if it exists
             if obj.segmentation is not None:
