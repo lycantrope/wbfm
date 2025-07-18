@@ -853,13 +853,16 @@ class ProjectData:
 
         try:
             # Transpose data from TXYZ to TZXY
-            dat = activity['RawCalciumSeriesSegmentation'].data
-            chunks = (1, ) + dat.shape
+            dat = activity['CalciumSeriesSegmentationUntracked'].data
+            chunks = (1, ) + dat.shape[1:]
             obj.raw_segmentation = da.from_array(dat, chunks=chunks).transpose((0, 3, 1, 2))
         except (KeyError, AttributeError) as e:
             # Set to be equal to the segmentation, if it exists
             if obj.segmentation is not None:
                 obj.raw_segmentation = obj.segmentation
+                obj.logger.warning(f"Could not load raw segmentation from NWB file ({e}); using tracked segmentation instead")
+            else:
+                obj.logger.warning(f"Could not load raw segmentation from NWB file: {e}")
 
         # Other metadata
         p = PhysicalUnitConversion()
