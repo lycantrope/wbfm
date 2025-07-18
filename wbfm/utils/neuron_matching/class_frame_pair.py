@@ -8,7 +8,6 @@ import cv2
 import numpy as np
 import pandas as pd
 from wbfm.utils.visualization.utils_napari import napari_tracks_from_match_list
-from napari.utils.transforms import Affine
 from wbfm.utils.segmentation.util.utils_metadata import DetectedNeurons
 from wbfm.utils.external.utils_cv2 import cast_matches_as_array
 from wbfm.utils.neuron_matching.class_reference_frame import ReferenceFrame
@@ -451,7 +450,7 @@ class FramePair:
         Returns the 3d Affine transformed version of the volume0, which can be passed
         Also returns the intermediate products (rotation) and the raw
         """
-
+        from napari.utils.transforms import Affine
         h = self.calc_or_get_alignment_between_matched_neurons(recalculate_alignment=recalculate_alignment)
         napari_affine = Affine(affine_matrix=np.vstack([h, [0, 0, 0, 1]]))
 
