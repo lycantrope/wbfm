@@ -3,10 +3,9 @@ import numpy as np
 from hdmf.backends.hdf5.h5_utils import H5DataIO
 from pynwb import NWBFile, NWBHDF5IO
 from pynwb.file import Subject
-from pynwb.ophys import Fluorescence, RoiResponseSeries
 from pynwb.behavior import Position, SpatialSeries
 from ndx_multichannel_volume import MultiChannelVolumeSeries
-from wbfm.utils.nwb.utils_nwb_export import build_optical_channel_objects, _zimmer_microscope_device
+from wbfm.utils.nwb.utils_nwb_export import build_optical_channel_objects
 from pynwb import TimeSeries
 from datetime import datetime
 from dateutil.tz import tzlocal
@@ -15,6 +14,10 @@ import dask.array as da
 from pathlib import Path
 import os
 import argparse
+from dask import delayed
+from skimage.segmentation import watershed
+import logging
+from tqdm.auto import tqdm
 
 
 def iter_frames(h5_file, n_timepoints, frame_shape):
@@ -24,19 +27,78 @@ def iter_frames(h5_file, n_timepoints, frame_shape):
 
 def dask_stack_volumes(volume_iter):
     """Stack a generator of volumes into a dask array along time."""
-    return da.stack(volume_iter, axis=0)  
+    return da.stack(volume_iter, axis=0)
+
+def segment_from_centroids_using_watershed(centroids, video, compactness=0.01, dtype=np.uint16):
+
+    if len(video.shape) == 5:
+        video = video[..., 0]  # Just take the red channel
+    T, X, Y, Z = video.shape
+
+    @delayed
+    def _iter_segment_video(video, centroids, t):
+        """Segment a single timepoint using watershed"""
+
+        # for t in range(T):
+        # Get video chunk
+        video_frame = video[t]
+        frame_centroids = centroids[t, ...]
+        
+        # Skip if no centroids for this timepoint
+        valid_centroids = frame_centroids[~np.isnan(frame_centroids).any(axis=1)]
+        if len(valid_centroids) == 0:
+            return np.zeros_like(video_frame, dtype=dtype)
+        
+        # Create markers from centroids
+        markers = np.zeros_like(video_frame, dtype=np.int32)
+        
+        for i, (x, y, z) in enumerate(valid_centroids):
+            # Convert to integer coordinates and ensure they're within bounds
+            x_int, y_int, z_int = int(round(z)), int(round(y)), int(round(x))
+            
+            if (0 <= z_int < Z and 0 <= y_int < Y and 0 <= x_int < X):
+                markers[x_int, y_int, z_int] = i + 1  # Labels start from 1
+        
+        # If no valid markers, return empty segmentation
+        if markers.max() == 0:
+            return np.zeros_like(video_frame, dtype=dtype)
+        
+        # Apply watershed segmentation
+        # try:
+        segmentation = watershed(
+            -video_frame, 
+            markers, 
+            compactness=compactness,
+            mask=video_frame>0,
+            watershed_line=False
+        )
+        # yield da.from_array(segmentation.astype(dtype))
+        return segmentation.astype(dtype)
+                
+            # except Exception as e:
+            #     logging.warning(f"Watershed failed for frame {frame_idx}: {e}")
+            #     return markers.astype(dtype)
+    
+    # Stack results
+    # segmented_video = dask_stack_volumes(_iter_segment_video(video, centroids))
+    # segmented_video = dask_stack_volumes([da.from_delayed(_iter_segment_video(video, centroids), shape=(X, Y, Z), dtype=dtype) for _ in range(T)])
+    segmented_video = dask_stack_volumes([da.from_delayed(_iter_segment_video(video, centroids, t), shape=(X, Y, Z), dtype=dtype) for t in range(T)])
+
+    return segmented_video
 
 
 def convert_harvard_to_nwb(input_path, 
-                           output_path,
-                           session_description,
-                           identifier,
-                           device_name,
-                           imaging_rate,
+                           output_path=None,
+                           session_description="Harvard",
+                           identifier="Harvard",
+                           device_name="Harvard",
+                           imaging_rate=10.0,
                            DEBUG=False):
 
     # === USER PARAMETERS ===
     experiment_name = input_path.split("/")[-1].split(".")[0]
+    if output_path is None:
+        output_path = Path(input_path).with_suffix('.nwb')
 
     with h5py.File(input_path, "r") as f:
 
@@ -66,11 +128,11 @@ def convert_harvard_to_nwb(input_path,
         ci_mean = ci_mean.T  # shape (1331, 97)
 
         flu_ts = TimeSeries(
-        name="mean_fluorescence",
-        data=ci_mean,
-        unit="a.u.",
-        rate=imaging_rate,
-        description="Mean calcium intensity per neuron, averaged over ROI pixels"
+            name="mean_fluorescence",
+            data=ci_mean,
+            unit="a.u.",
+            rate=imaging_rate,
+            description="Mean calcium intensity per neuron, averaged over ROI pixels"
         )
         nwbfile.add_acquisition(flu_ts)
 
@@ -80,11 +142,12 @@ def convert_harvard_to_nwb(input_path,
             description='Calcium time series metadata, segmentation, and fluorescence data'
         )
         points = f["points"][:]  # shape (1331, 98, 3)
+        if DEBUG:
+            points = points[:10, ...]
         position_module = Position(name="NeuronCentroids")
 
-        for neuron_idx in range(points.shape[1]):
+        for neuron_idx in tqdm(range(points.shape[1]), desc="Formatting neuron positions..."):
             neuron_trace = points[:, neuron_idx, :]  # (1331, 3)
-            print(neuron_trace.shape)
 
             position_module.add_spatial_series(SpatialSeries(
                 name=f"neuron_{(neuron_idx+1):03d}",
@@ -98,7 +161,9 @@ def convert_harvard_to_nwb(input_path,
         calcium_imaging_module.add(position_module)
 
         # Tranpose channel to be last
-        frame_shape = np.transpose(f["0/frame"].shape, (1,2,3,0))
+        print(f"Detected video with frame shape: {f['0/frame'].shape}")
+        frame_shape = f["0/frame"].shape
+        frame_shape = frame_shape[1:] + (frame_shape[0], )
         # frame_shape = (320, 192, 20, 2) #np.transpose(f["0/frame"].shape, (1,2,3,0))  # (2, 320, 192, 20)
         chunk_shape = (1,) + frame_shape
 
@@ -107,6 +172,8 @@ def convert_harvard_to_nwb(input_path,
             if key.isdigit():
                 nn_keys.append(int(key))
         num_frames = np.array(nn_keys).max() + 1    
+        if DEBUG:
+            num_frames = 10
         series_shape = (num_frames, ) + frame_shape
         
         # Build metadata objects
@@ -116,7 +183,7 @@ def convert_harvard_to_nwb(input_path,
         # Add directly to the file to prevent hdmf.build.errors.OrphanContainerBuildError
         nwbfile.add_imaging_plane(CalcImagingVolume)
 
-        imvol_dask = dask_stack_volumes(iter_frames(f,num_frames, frame_shape))
+        imvol_dask = dask_stack_volumes(iter_frames(f, num_frames, frame_shape))
         chunk_video = (1,) + imvol_dask.shape[1:-1] + (1,)
         video_data = H5DataIO(
             data=CustomDataChunkIterator(array=imvol_dask, chunk_shape=chunk_video, display_progress=True),
@@ -139,6 +206,30 @@ def convert_harvard_to_nwb(input_path,
             imaging_volume=CalcImagingVolume,
         ))
 
+        # Calculate segmentation using simple watershed
+        seg_dask = segment_from_centroids_using_watershed(points, imvol_dask)
+
+        chunk_seg = (1,) + frame_shape[:-1]  # chunk along time only
+        print(f"Segmentations will be stored with chunk size {chunk_seg} and size {seg_dask.shape}")
+        seg_data = H5DataIO(
+            data=CustomDataChunkIterator(array=seg_dask, chunk_shape=chunk_seg, display_progress=True),
+            compression="gzip"
+        )
+        calcium_imaging_module.add(MultiChannelVolumeSeries(
+            name="CalciumSeriesSegmentation",
+            description="Series of indexed masks associated with calcium segmentation",
+            comments="Segmentation masks for calcium imaging data from Harvard lab, generated via watershed",
+            data=seg_data,  # data here should be series of indexed masks
+            # Elements below can be kept the same as the CalciumImageSeries defined above
+            device=device,
+            unit="Voxel gray counts",
+            scan_line_rate=2995.,
+            dimension=frame_shape,  # Gives a warning; what should this be?
+            resolution=1.,
+            # smallest meaningful difference (in specified unit) between values in data: i.e. level of precision
+            rate=imaging_rate,  # sampling rate in hz
+            imaging_volume=CalcImagingVolume,
+        ))
 
         # === Write NWB file ===
         with NWBHDF5IO(output_path, "w") as io:
@@ -148,7 +239,6 @@ def convert_harvard_to_nwb(input_path,
 
 
 if __name__ == "__main__":
-
 
     parser = argparse.ArgumentParser(description="Convert Harvard data to NWB format.")
     parser.add_argument('--input_path', type=str, required=True, help='Base directory containing input data as .h5')
@@ -160,12 +250,6 @@ if __name__ == "__main__":
     parser.add_argument('--debug', action='store_true', help='If set, only convert the first 10 time points')
 
     args = parser.parse_args()
-
-    # If the output path is not an absolute path, make it absolute by joining with the base_dir
-    if args.output_path is None:
-        args.output_path = Path(args.output_path).with_suffix('.nwb')
-    if not os.path.isabs(args.output_path):
-        args.output_path = os.path.join(args.base_dir, args.output_path)
 
     convert_harvard_to_nwb(
         base_dir=args.base_dir,
