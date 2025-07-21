@@ -27,8 +27,8 @@ def dask_stack_volumes(volume_iter):
 
 
 # === USER PARAMETERS ===
-input_path = "153.h5"
-output_path = "153.nwb"
+input_path = "185.h5"
+output_path = "185.nwb"
 experiment_name = input_path.split("/")[-1].split(".")[0]
 frame_rate = 10.0  
 
@@ -97,29 +97,39 @@ with h5py.File(input_path, "r") as f:
 
 
     # === Add 3D Tracking Data ===
+    calcium_imaging_module = nwbfile.create_processing_module(
+        name='CalciumActivity',
+        description='Calcium time series metadata, segmentation, and fluorescence data'
+    )
     points = f["points"][:]  # shape (1331, 98, 3)
-    position_module = Position(name="tracked_positions")
+    position_module = Position(name="NeuronCentroids")
 
     for neuron_idx in range(points.shape[1]):
         neuron_trace = points[:, neuron_idx, :]  # (1331, 3)
+        print(neuron_trace.shape)
 
         position_module.add_spatial_series(SpatialSeries(
-            name=f"neuron_{neuron_idx:03d}",
+            name=f"neuron_{(neuron_idx+1):03d}",
             data=neuron_trace,
             unit="micrometers",
             reference_frame="Lab frame",
-            rate=frame_rate,
-            description=f"3D position of neuron {neuron_idx}"
+            description=f"3D position of neuron {neuron_idx}",
+            timestamps=np.arange(neuron_trace.shape[0])
         ))
 
-    nwbfile.create_processing_module(
-        name="behavior",
-        description="3D tracked neuron positions"
-    ).add(position_module)
+    calcium_imaging_module.add(position_module)
 
     frame_shape = (320, 192, 20, 2) #np.transpose(f["0/frame"].shape, (1,2,3,0))  # (2, 320, 192, 20)
     chunk_shape = (1,) + frame_shape
-    series_shape = (1331, 320, 192, 20, 2)
+
+    nn_keys = []
+    for key in f.keys():
+        if key.isdigit():
+            nn_keys.append(int(key))
+    num_frames = np.array(nn_keys).max() + 1
+    print(num_frames)
+    
+    series_shape = (num_frames, 320, 192, 20, 2)
     dtype = f["0/frame"].dtype
 
     
@@ -131,7 +141,7 @@ with h5py.File(input_path, "r") as f:
     nwbfile.add_imaging_plane(CalcImagingVolume)
 
 
-    imvol_dask = dask_stack_volumes(iter_frames(f,1331, frame_shape))
+    imvol_dask = dask_stack_volumes(iter_frames(f,num_frames, frame_shape))
     chunk_video = (1,) + imvol_dask.shape[1:-1] + (1,)
     video_data = H5DataIO(
         data=CustomDataChunkIterator(array=imvol_dask, chunk_shape=chunk_video, display_progress=True),
