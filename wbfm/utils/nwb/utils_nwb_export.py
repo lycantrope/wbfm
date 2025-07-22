@@ -217,6 +217,10 @@ def nwb_using_project_data(project_data: ProjectData, include_image_data=True, o
         print("No behavior data found")
         behavior_video, behavior_time_series_dict = None, None
 
+    # Unpack centroids and segmentation-to-final-id mapping
+    df_tracking = project_data.final_
+
+
     nwb_file, fname = nwb_with_traces_from_components(calcium_video_dict, segmentation_video, gce_quant_dict,
                                                       session_start_time, subject_id, strain, physical_units_class,
                                                       behavior_video, behavior_time_series_dict,
@@ -1378,7 +1382,7 @@ class CustomDataChunkIterator(GenericDataChunkIterator):
         return self.array.dtype
 
 
-def df_to_nwb_tracking(df, timestamps=None, reference_frame="unknown", unit="pixels"):
+def df_to_nwb_tracking(df, timestamps=None, reference_frame="unknown", unit="pixels", centroids_are_tracked=True):
     """
     Converts a MultiIndex DataFrame to NWB SpatialSeries + object-ID table.
 
@@ -1396,14 +1400,19 @@ def df_to_nwb_tracking(df, timestamps=None, reference_frame="unknown", unit="pix
     if timestamps is None:
         timestamps = np.arange(len(df.index))
 
-    # Build DynamicTable of neurons with correct raw segmentation IDs for all time points
-    dt = DynamicTable(name="NeuronSegmentationID", description="Segmentation IDs per neuron", id=timestamps)
-    for nid in tqdm(neuron_ids, desc="Adding neuron IDs to DynamicTable"):
-        seg_ids = df.loc[:, (nid, 'raw_segmentation_id')].values
-        dt.add_column(name=str(nid), description=f"Raw Seg ID for {nid}", data=seg_ids)
+    if centroids_are_tracked:
+        # Build DynamicTable of neurons with correct raw segmentation IDs for all time points
+        dt = DynamicTable(name="NeuronSegmentationID", description="Segmentation IDs per neuron", id=timestamps)
+        for nid in tqdm(neuron_ids, desc="Adding neuron IDs to DynamicTable"):
+            seg_ids = df.loc[:, (nid, 'raw_segmentation_id')].values
+            dt.add_column(name=str(nid), description=f"Raw Seg ID for {nid}", data=seg_ids)
+        position_name = "NeuronCentroids"
+    else:
+        dt = None
+        position_name = "NeuronCentroidsUntracked"
 
     if coord_names is not None:
-        position = Position(name="NeuronCentroids")
+        position = Position(name=position_name)
         for neuron in tqdm(neuron_ids, desc="Adding centroids to Position"):
             neuron_df = df[neuron]
             data = neuron_df[coord_names].to_numpy()
