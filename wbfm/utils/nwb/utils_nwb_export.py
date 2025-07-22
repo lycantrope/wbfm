@@ -218,12 +218,11 @@ def nwb_using_project_data(project_data: ProjectData, include_image_data=True, o
         behavior_video, behavior_time_series_dict = None, None
 
     # Unpack centroids and segmentation-to-final-id mapping
-    df_tracking = project_data.final_
-
+    df_tracking = project_data.final_tracks
 
     nwb_file, fname = nwb_with_traces_from_components(calcium_video_dict, segmentation_video, gce_quant_dict,
                                                       session_start_time, subject_id, strain, physical_units_class,
-                                                      behavior_video, behavior_time_series_dict,
+                                                      behavior_video, behavior_time_series_dict, df_tracking,
                                                       output_fname, include_image_data)
     # Update in the project config
     if cfg_nwb is not None:
@@ -304,7 +303,7 @@ def nwb_from_matlab_tracker(matlab_fname, output_folder=None):
 
 
 def nwb_with_traces_from_components(calcium_video_dict, segmentation_video, gce_quant_dict, session_start_time, subject_id, strain,
-                                    physical_units_class, behavior_video, behavior_time_series_dict,
+                                    physical_units_class, behavior_video, behavior_time_series_dict, df_tracking,
                                     output_fname, include_image_data):
     # Initialize and populate the NWB file
     nwbfile = initialize_nwb_file(session_start_time, strain, subject_id)
@@ -342,6 +341,19 @@ def nwb_with_traces_from_components(calcium_video_dict, segmentation_video, gce_
         nwbfile = convert_behavior_series_to_nwb(nwbfile, behavior_time_series_dict)
     else:
         print("No behavior time series data found, skipping...")
+    
+    # Add centroids (output of the tracking), if it exists
+    if df_tracking is not None:
+        position, dt = df_to_nwb_tracking(df_tracking)
+        
+        if position is not None:
+            nwbfile.processing['CalciumActivity'].add(position)
+        else:
+            raise ValueError(f"Tracking dataframe was found (shape: {df_tracking.shape}), but could not convert it into centroids")
+
+        if include_image_data:
+            # This table is not useful (and perhaps misleading) without the corresponding segmentation
+            nwbfile.processing['CalciumActivity'].add(dt)
 
     if output_fname:
         logging.info(f"Saving NWB file to {output_fname}")
@@ -1386,7 +1398,7 @@ def df_to_nwb_tracking(df, timestamps=None, reference_frame="unknown", unit="pix
     """
     Converts a MultiIndex DataFrame to NWB SpatialSeries + object-ID table.
 
-    df: pandas DataFrame indexed by, e.g., time and object_id, with cols x,y,z,raw_segmentation_id
+    df: pandas DataFrame indexed by, e.g., time and object_id, with cols x,y,z (optional: also raw_segmentation_id)
     timestamps: array of timestamps aligned to df.index (first level should be time)
 
     """
