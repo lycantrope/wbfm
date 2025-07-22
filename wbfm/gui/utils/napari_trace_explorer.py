@@ -136,26 +136,30 @@ class NapariTraceExplorer(QtWidgets.QWidget):
         self.changeTraceTrackletDropdown = QtWidgets.QComboBox()
         self.changeTraceTrackletDropdown.addItems(['traces', 'tracklets'])
         self.changeTraceTrackletDropdown.currentIndexChanged.connect(self.change_trace_tracklet_mode)
-        self.vbox1.addWidget(self.changeTraceTrackletDropdown)
+        if self.load_tracklets:
+            # Do not even add the dropdown if disallowed
+            self.vbox1.addWidget(self.changeTraceTrackletDropdown)
 
         if self.load_tracklets:
             self.changeInteractivityCheckbox = QtWidgets.QCheckBox("Turn on interactivity? "
                                                                    "NOTE: only Raw_segmentation layer is interactive")
+            self.changeInteractivityCheckbox.stateChanged.connect(self.update_interactivity)
+            self.vbox1.addWidget(self.changeInteractivityCheckbox)
         else:
             self.changeInteractivityCheckbox = QtWidgets.QCheckBox("Tracklet interactivity is NOT enabled")
             self.changeInteractivityCheckbox.setEnabled(False)
-        self.changeInteractivityCheckbox.stateChanged.connect(self.update_interactivity)
-        self.vbox1.addWidget(self.changeInteractivityCheckbox)
 
         # More complex groupBoxes:
         self._setup_trace_filtering_buttons()
-        self._setup_tracklet_correction_buttons()
+        if self.load_tracklets:
+            self._setup_tracklet_correction_buttons()
         # self._setup_gt_correction_shortcut_buttons()
         self._setup_segmentation_correction_buttons()
 
         self.verticalLayout.addWidget(self.groupBox1NeuronSelection)
         self.verticalLayout.addWidget(self.groupBox2TraceCalculation)
-        self.verticalLayout.addWidget(self.groupBox3TrackletCorrection)
+        if self.load_tracklets:
+            self.verticalLayout.addWidget(self.groupBox3TrackletCorrection)
         # self.verticalLayout.addWidget(self.groupBox5)
         self.verticalLayout.addWidget(self.groupBox6SegmentationCorrection)
 
@@ -167,7 +171,8 @@ class NapariTraceExplorer(QtWidgets.QWidget):
         self.initialize_shortcuts()
         self.connect_napari_callbacks()
         self.initialize_trace_or_tracklet_subplot()
-        self.update_interactivity()
+        if self.load_tracklets:
+            self.update_interactivity()
 
         self.viewer.window._qt_window.closeEvent = partial(
             on_close,
