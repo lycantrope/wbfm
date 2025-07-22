@@ -45,16 +45,13 @@ def segment_from_centroids_using_watershed(centroids, video, compactness=0.5, dt
         video_frame = video[t]
         frame_centroids = centroids[t, ...]
         
-        # Skip if no centroids for this timepoint
-        valid_centroids = frame_centroids[~np.isnan(frame_centroids).any(axis=1)]
-        if len(valid_centroids) == 0:
-            return np.zeros_like(video_frame, dtype=dtype)
-        
         # Create markers from centroids
         markers = np.zeros_like(video_frame, dtype=np.int32)
         
-        for i, (x, y, z) in enumerate(valid_centroids):
+        for i, (x, y, z) in enumerate(frame_centroids):
             # Convert to integer coordinates and ensure they're within bounds
+            if np.isnan(x):
+                continue
             x_int, y_int, z_int = int(round(x)), int(round(y)), int(round(z))
             
             if (0 <= z_int < Z and 0 <= y_int < Y and 0 <= x_int < X):
@@ -78,21 +75,21 @@ def segment_from_centroids_using_watershed(centroids, video, compactness=0.5, dt
             watershed_line=False
         )
 
-        # Remap segmentation so each region gets the marker label that seeded it (watershed skips missing indices)  
-        unique_labels = np.unique(segmentation)
-        remapped = np.zeros_like(segmentation, dtype=dtype)
-        for label in unique_labels:
-            if label == 0:
-                continue  # background
-            # Find which marker generated this region
-            mask = (segmentation == label)
-            marker_labels = markers[mask]
-            marker_labels = marker_labels[marker_labels > 0]
-            if len(marker_labels) > 0:
-            # Assign the most common marker label to the region
-                new_label = np.bincount(marker_labels).argmax()
-            remapped[mask] = new_label
-        segmentation = remapped
+        # # Remap segmentation so each region gets the marker label that seeded it (watershed skips missing indices)  
+        # unique_labels = np.unique(segmentation)
+        # remapped = np.zeros_like(segmentation, dtype=dtype)
+        # for label in unique_labels:
+        #     if label == 0:
+        #         continue  # background
+        #     # Find which marker generated this region
+        #     mask = (segmentation == label)
+        #     marker_labels = markers[mask]
+        #     marker_labels = marker_labels[marker_labels > 0]
+        #     if len(marker_labels) > 0:
+        #     # Assign the most common marker label to the region
+        #         new_label = np.bincount(marker_labels).argmax()
+        #     remapped[mask] = new_label
+        # segmentation = remapped
         # yield da.from_array(segmentation.astype(dtype))
         return segmentation.astype(dtype)
                 
