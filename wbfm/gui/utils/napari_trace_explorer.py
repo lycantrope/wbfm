@@ -217,10 +217,11 @@ class NapariTraceExplorer(QtWidgets.QWidget):
         self.groupBox2TraceCalculation = QtWidgets.QGroupBox("Trace calculation options", self.verticalLayoutWidget)
         self.formlayout3 = QtWidgets.QFormLayout(self.groupBox2TraceCalculation)
 
-        self.changeSubplotMarkerDropdown = QtWidgets.QComboBox()
-        self.changeSubplotMarkerDropdown.addItems(['line', 'dots'])
-        self.changeSubplotMarkerDropdown.currentIndexChanged.connect(self.update_trace_or_tracklet_subplot)
-        self.formlayout3.addRow("Tracklet subplot marker:", self.changeSubplotMarkerDropdown)
+        if self.load_tracklets:
+            self.changeSubplotMarkerDropdown = QtWidgets.QComboBox()
+            self.changeSubplotMarkerDropdown.addItems(['line', 'dots'])
+            self.changeSubplotMarkerDropdown.currentIndexChanged.connect(self.update_trace_or_tracklet_subplot)
+            self.formlayout3.addRow("Tracklet subplot marker:", self.changeSubplotMarkerDropdown)
 
         self.changeTraceCalculationDropdown = QtWidgets.QComboBox()
         self.changeTraceCalculationDropdown.addItems(self.traces_mode_calculation_options)
