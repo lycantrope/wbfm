@@ -1041,7 +1041,7 @@ def make_project_like(project_path: str, target_directory: str,
     target_directory - parent folder within which to create the new project
     steps_to_keep - steps, if any, to keep absolute paths connecting to the old project.
         Should be the full name of the step, not just a number (and not including the number). Example:
-        "steps_to_keep=['segmentation']"
+        "steps_to_keep=['segmentation']" (note that the surrounding quotes are needed for the cli)
     target_suffix - suffix for filename. Default is none
     new_project_name - optional new name for project. Default is same as old
     verbose
