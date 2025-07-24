@@ -38,7 +38,6 @@ SBATCH_TEMPLATES = {
 }
 
 def submit_job(script_path, dependency=None, debug=False):
-    script_path.parent.mkdir(parents=True, exist_ok=True)
     cmd = ["sbatch"]
     if dependency:
         cmd.append(f"--dependency=afterok:{dependency}")
@@ -60,6 +59,7 @@ def write_and_submit_job(trial_name, step_name, command, dependency=None, debug=
 
     script_template = SBATCH_TEMPLATES[step_name]
     script_content = script_template.format(job_name=job_name, command=command)
+    script_path.parent.mkdir(parents=True, exist_ok=True)
     script_path.write_text(script_content)
 
     if debug:
