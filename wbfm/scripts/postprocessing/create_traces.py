@@ -74,9 +74,10 @@ def submit_copy_job(trial_name, finished_path, new_location, make_project_script
         f"with project_path={finished_path} "
         f"target_directory={new_location} "
         f"target_suffix={trial_name} "
-        f"steps_to_keep=['preprocessing', 'segmentation']"
+        f'steps_to_keep="[\'preprocessing\', \'segmentation\']"'
     )
     return write_and_submit_job(trial_name, "copy_project", cmd, debug=debug)
+
 
 def submit_tracking_job(trial_name, new_location, barlow_model, track_script, dependency_jobid, debug=False):
     project_path = f"{new_location}/{trial_name}"
