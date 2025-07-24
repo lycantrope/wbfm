@@ -68,9 +68,9 @@ def write_and_submit_job(trial_name, step_name, command, dependency=None, debug=
 
     return submit_job(script_path, dependency=dependency, debug=debug)
 
-def submit_copy_job(trial_name, finished_path, new_location, debug=False):
+def submit_copy_job(trial_name, finished_path, new_location, make_project_script, debug=False):
     cmd = (
-        f"python wbfm/scripts/postprocessing/make_project_like.py "
+        f"python {make_project_script} "
         f"with project_path={finished_path} "
         f"target_directory={new_location} "
         f"target_suffix={trial_name} "
@@ -78,26 +78,27 @@ def submit_copy_job(trial_name, finished_path, new_location, debug=False):
     )
     return write_and_submit_job(trial_name, "copy_project", cmd, debug=debug)
 
-def submit_tracking_job(trial_name, new_location, barlow_model, dependency_jobid, debug=False):
+def submit_tracking_job(trial_name, new_location, barlow_model, track_script, dependency_jobid, debug=False):
     project_path = f"{new_location}/{trial_name}"
     cmd = (
-        f"python wbfm/scripts/pipeline_alternate/3-track_using_barlow.py "
+        f"python {track_script} "
         f"with project_path={project_path} "
         f"model_fname={barlow_model} "
         f"use_projection_space=False"
     )
     return write_and_submit_job(trial_name, "track", cmd, dependency=dependency_jobid, debug=debug)
 
-def submit_trace_job(trial_name, new_location, dependency_jobid, debug=False):
+def submit_trace_job(trial_name, new_location, dispatcher_script, dependency_jobid, debug=False):
     project_path = f"{new_location}/{trial_name}"
     cmd = (
-        f"sbatch wbfm/scripts/cluster/single_step_dispatcher.sbatch "
+        f"sbatch {dispatcher_script} "
         f"-t {project_path} -s 4"
     )
     return write_and_submit_job(trial_name, "extract_traces", cmd, dependency=dependency_jobid, debug=debug)
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run pipeline: copy → track → extract (all via SBATCH)")
+    parser.add_argument("--wbfm-home", required=True, help="Path to the wbfm codebase root directory")
     parser.add_argument("--finished-path", required=True, help="Path to finished project")
     parser.add_argument("--new-location", required=True, help="Base path for new projects")
     parser.add_argument("--models-dir", required=True, help="Folder containing trial subfolders with models")
@@ -108,6 +109,9 @@ def parse_args():
 def main():
     args = parse_args()
     models_dir = Path(args.models_dir)
+    make_project_script = Path(args.wbfm_home) / "scripts/postprocessing/make_project_like.py"
+    track_script = Path(args.wbfm_home) / "scripts/pipeline_alternate/3-track_using_barlow.py"
+    dispatcher_script = Path(args.wbfm_home) / "scripts/cluster/single_step_dispatcher.sbatch"
 
     trial_dirs = sorted([d for d in models_dir.iterdir() if d.is_dir() and re.match(r"trial_\d+", d.name)])
 
@@ -132,9 +136,17 @@ def main():
                 print(f"[DEBUG] Starting pipeline for {trial_name}")
                 print(f"[DEBUG] Model path: {barlow_model_path}")
 
-            copy_jobid = submit_copy_job(trial_name, args.finished_path, args.new_location, debug=args.debug)
-            track_jobid = submit_tracking_job(trial_name, args.new_location, str(barlow_model_path), dependency_jobid=copy_jobid, debug=args.debug)
-            submit_trace_job(trial_name, args.new_location, dependency_jobid=track_jobid, debug=args.debug)
+            copy_jobid = submit_copy_job(
+                trial_name, args.finished_path, args.new_location, make_project_script, debug=args.debug
+            )
+            track_jobid = submit_tracking_job(
+                trial_name, args.new_location, str(barlow_model_path), track_script,
+                dependency_jobid=copy_jobid, debug=args.debug
+            )
+            submit_trace_job(
+                trial_name, args.new_location, dispatcher_script,
+                dependency_jobid=track_jobid, debug=args.debug
+            )
 
             if args.debug:
                 print(f"[DEBUG] Submitted all jobs for {trial_name}")
