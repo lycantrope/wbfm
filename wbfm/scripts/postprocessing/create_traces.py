@@ -141,11 +141,11 @@ def main():
                 trial_name, args.finished_path, args.new_location, make_project_script, debug=args.debug
             )
             track_jobid = submit_tracking_job(
-                trial_name, args.new_location, str(barlow_model_path), track_script,
+                trial_name, args.new_location+"2025_07_01", str(barlow_model_path), track_script,
                 dependency_jobid=copy_jobid, debug=args.debug
             )
             submit_trace_job(
-                trial_name, args.new_location, dispatcher_script,
+                trial_name, args.new_location+"2025_07_01", dispatcher_script,
                 dependency_jobid=track_jobid, debug=args.debug
             )
 
