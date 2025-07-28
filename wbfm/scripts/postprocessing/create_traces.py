@@ -114,6 +114,9 @@ def main():
     track_script = Path(args.wbfm_home) / "scripts/pipeline_alternate/3-track_using_barlow.py"
     dispatcher_script = Path(args.wbfm_home) / "scripts/cluster/single_step_dispatcher.sbatch"
 
+    # NEW: Extract parent folder name (e.g. "2025_07_01")
+    finished_path_parent = Path(args.finished_path).parent.name
+
     trial_dirs = sorted([d for d in models_dir.iterdir() if d.is_dir() and re.match(r"trial_\d+", d.name)])
 
     if not trial_dirs:
@@ -126,7 +129,7 @@ def main():
         trial_dirs = trial_dirs[:1]
 
     for trial_dir in trial_dirs:
-        trial_name = "/"+trial_dir.name
+        trial_name = trial_dir.name
         barlow_model_path = trial_dir / args.model_fname
         if not barlow_model_path.is_file():
             print(f"Warning: Model file not found: {barlow_model_path} - skipping {trial_name}")
@@ -137,15 +140,23 @@ def main():
                 print(f"[DEBUG] Starting pipeline for {trial_name}")
                 print(f"[DEBUG] Model path: {barlow_model_path}")
 
+            # Copy project
             copy_jobid = submit_copy_job(
                 trial_name, args.finished_path, args.new_location, make_project_script, debug=args.debug
             )
+
+            # Build project base path dynamically
+            project_base_path = str(Path(args.new_location) / finished_path_parent)
+
+            # Track
             track_jobid = submit_tracking_job(
-                trial_name, args.new_location+"/2025_07_01", str(barlow_model_path), track_script,
+                trial_name, project_base_path, str(barlow_model_path), track_script,
                 dependency_jobid=copy_jobid, debug=args.debug
             )
+
+            # Extract traces
             submit_trace_job(
-                trial_name, args.new_location+"/2025_07_01", dispatcher_script,
+                trial_name, project_base_path, dispatcher_script,
                 dependency_jobid=track_jobid, debug=args.debug
             )
 
@@ -155,6 +166,7 @@ def main():
         except subprocess.CalledProcessError as e:
             print(f"Error in {trial_name}: {e}")
             continue
+
 
 if __name__ == "__main__":
     main()
