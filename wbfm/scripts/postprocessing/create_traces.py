@@ -8,7 +8,7 @@ SBATCH_TEMPLATES = {
 #SBATCH --job-name={job_name}
 #SBATCH --output=logs/{job_name}_%j.out
 #SBATCH --error=logs/{job_name}_%j.err
-#SBATCH --time=01:00:00
+#SBATCH --time=00:10:00
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=16G
 
@@ -18,7 +18,7 @@ SBATCH_TEMPLATES = {
 #SBATCH --job-name={job_name}
 #SBATCH --output=logs/{job_name}_%j.out
 #SBATCH --error=logs/{job_name}_%j.err
-#SBATCH --time=04:00:00
+#SBATCH --time=02:00:00
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=128G
 #SBATCH --gres=gpu:1
@@ -29,7 +29,7 @@ SBATCH_TEMPLATES = {
 #SBATCH --job-name={job_name}
 #SBATCH --output=logs/{job_name}_%j.out
 #SBATCH --error=logs/{job_name}_%j.err
-#SBATCH --time=02:00:00
+#SBATCH --time=01:00:00
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=128G
 
