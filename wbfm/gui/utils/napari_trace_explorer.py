@@ -153,8 +153,18 @@ class NapariTraceExplorer(QtWidgets.QWidget):
         self._setup_trace_filtering_buttons()
         if self.load_tracklets:
             self._setup_tracklet_correction_buttons()
-        # self._setup_gt_correction_shortcut_buttons()
-        self._setup_segmentation_correction_buttons()
+            # self._setup_gt_correction_shortcut_buttons()
+            self._setup_segmentation_correction_buttons()
+
+        # Move full saving button out into it's own section
+        self.groupBox7SaveData = QtWidgets.QGroupBox("Saving Data", self.verticalLayoutWidget)
+        self.formlayout7 = QtWidgets.QFormLayout(self.groupBox7SaveData)
+        self.mainSaveButton = QtWidgets.QPushButton("Save all to disk")
+        self.mainSaveButton.pressed.connect(self.save_everything_to_disk)
+        msg = "IDs"
+        if self.load_tracklets:
+            msg = f"Masks, Tracklets, and {msg}"
+        self.formlayout7.addRow(msg, self.mainSaveButton)
 
         self.verticalLayout.addWidget(self.groupBox1NeuronSelection)
         self.verticalLayout.addWidget(self.groupBox2TraceCalculation)
@@ -450,10 +460,6 @@ class NapariTraceExplorer(QtWidgets.QWidget):
         self.splitSegmentationSaveButton1 = QtWidgets.QPushButton("Save to RAM")
         self.splitSegmentationSaveButton1.pressed.connect(self.modify_segmentation_using_manual_correction)
         self.formlayout6.addRow("Save candidate mask: ", self.splitSegmentationSaveButton1)
-
-        self.mainSaveButton = QtWidgets.QPushButton("SAVE ALL TO DISK")
-        self.mainSaveButton.pressed.connect(self.save_everything_to_disk)
-        self.formlayout6.addRow("*Masks, Tracklets, and IDs*", self.mainSaveButton)
 
         self.saveSegmentationStatusLabel = QtWidgets.QLabel("No segmentation loaded")
         self.formlayout6.addRow("STATUS: ", self.saveSegmentationStatusLabel)
