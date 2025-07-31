@@ -13,6 +13,9 @@ On Windows I suggest anaconda prompt (this comes with an anaconda installation) 
 Either way, you should begin by installing anaconda if you don't already have it:
 https://www.anaconda.com/products/individual
 
+However, please check the user agreements, which have recently changed for anaconda.
+An alternative is mamba: https://mamba.readthedocs.io/en/latest/
+
 ### Step 1
 In the folder conda-environments, there is a specific environment for this purpose: "gui_only.yaml"
 
