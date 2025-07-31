@@ -76,7 +76,8 @@ def create_vol_seg_centers(name, description, ImagingVolume, positions,
     return vs
 
 
-def nwb_using_project_data(project_data: ProjectData, include_image_data=True, output_folder=None, DEBUG=False):
+def nwb_using_project_data(project_data: ProjectData, include_image_data=True, output_folder=None,
+                           enforce_nonoverlapping_behaviors=False, DEBUG=False):
     """
     Convert a ProjectData class to an NWB h5 file, optionally including all raw image data.
 
@@ -209,9 +210,10 @@ def nwb_using_project_data(project_data: ProjectData, include_image_data=True, o
                                                                            include_self_collision=True)
         df_discrete = video_class.calc_behavior_from_alias(discrete_time_series_names, include_slowing=True,
                                                            reset_index=False)
-        idx = behavior_time_series_dict['continuous_behaviors']['velocity'].index
-        df_discrete = convert_binary_columns_to_one_hot(pd.DataFrame(df_discrete, index=idx),
-                                                        discrete_time_series_names)
+        if enforce_nonoverlapping_behaviors:
+            idx = behavior_time_series_dict['continuous_behaviors']['velocity'].index
+            df_discrete = convert_binary_columns_to_one_hot(pd.DataFrame(df_discrete, index=idx),
+                                                            discrete_time_series_names)
         behavior_time_series_dict['discrete_states'] = df_discrete
 
     else:
