@@ -132,7 +132,7 @@ class NapariTraceExplorer(QtWidgets.QWidget):
         self.changeChannelDropdown.currentIndexChanged.connect(self.update_trace_subplot)
         self.vbox1.addWidget(self.changeChannelDropdown)
 
-        # Change traces vs tracklet mode
+        # Change traces vs tracklet mode (we need the class even if we don't have the button)
         self.changeTraceTrackletDropdown = QtWidgets.QComboBox()
         self.changeTraceTrackletDropdown.addItems(['traces', 'tracklets'])
         self.changeTraceTrackletDropdown.currentIndexChanged.connect(self.change_trace_tracklet_mode)
@@ -151,6 +151,7 @@ class NapariTraceExplorer(QtWidgets.QWidget):
 
         # More complex groupBoxes:
         self._setup_trace_filtering_buttons()
+        self._setup_layer_creation_buttons()
         if self.load_tracklets:
             self._setup_tracklet_correction_buttons()
             # self._setup_gt_correction_shortcut_buttons()
@@ -308,9 +309,14 @@ class NapariTraceExplorer(QtWidgets.QWidget):
         self.changeReferenceTrace.currentIndexChanged.connect(self.update_reference_trace)
         self.formlayout3.addRow("Reference trace:", self.changeReferenceTrace)
 
+    def _setup_layer_creation_buttons(self):
+        self.groupBox5LayerCreation = QtWidgets.QGroupBox("New layer creation", self.verticalLayoutWidget)
+        self.formlayout8 = QtWidgets.QFormLayout(self.groupBox5LayerCreation)
+
         self.addReferenceHeatmap = QtWidgets.QPushButton("Add Layer")
         self.addReferenceHeatmap.pressed.connect(self.add_layer_colored_by_correlation_to_current_neuron)
-        self.formlayout3.addRow("Correlation to current trace:", self.addReferenceHeatmap)
+        self.formlayout8.addRow("Correlation to current trace:", self.addReferenceHeatmap)
+
 
     def _setup_general_shortcut_buttons(self):
         self.groupBox3b = QtWidgets.QGroupBox("General shortcuts", self.verticalLayoutWidget)
