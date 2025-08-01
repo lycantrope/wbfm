@@ -270,7 +270,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     convert_harvard_to_nwb(
-        base_dir=args.base_dir,
+        input_path=args.input_path,
         output_path=args.output_path,
         session_description=args.session_description,
         identifier=args.identifier,
