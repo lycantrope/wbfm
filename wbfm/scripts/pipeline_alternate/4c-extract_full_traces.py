@@ -57,7 +57,7 @@ def main(_config, _run):
 
     with safe_cd(_config['project_dir']):
         # Reads masks from disk, and writes traces
-        extract_traces_using_config(project_cfg, trace_cfg, name_mode='neuron', DEBUG=DEBUG)
+        extract_traces_using_config(project_cfg, name_mode='neuron', DEBUG=DEBUG)
 
         # By default make some visualizations
         # Note: reloads the project data
