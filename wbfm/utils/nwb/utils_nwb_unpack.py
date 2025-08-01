@@ -69,7 +69,6 @@ def unpack_nwb_to_project_structure(project_dir, nwb_path=None):
     else:
         project_data.logger.info("No preprocessed video data found in the NWB file.")
 
-
     # Write segmentation as zarr
     if project_data.raw_segmentation is not None:
         segment_cfg = cfg.get_segmentation_config()
