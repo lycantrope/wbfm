@@ -8,7 +8,7 @@ from tqdm.auto import tqdm
 
 from wbfm.utils.general.utils_networkx import calc_bipartite_matches_using_networkx, build_digraph_from_matches, \
     unpack_node_name, is_one_neuron_per_frame
-from wbfm.utils.neuron_matching.utils_matching import calc_bipartite_from_positions
+from wbfm.utils.neuron_matching.utils_matching import calc_bipartite_from_positions, calc_bipartite_from_ids
 from scipy.sparse import coo_matrix
 from wbfm.utils.general.high_performance_pandas import get_names_from_df
 
@@ -207,7 +207,7 @@ def matches_to_sparse_matrix(matches_with_conf, shape=None):
 def rename_columns_using_matching(df_base, df_to_rename, column='raw_neuron_ind_in_list',
                                   try_to_fix_inf=False):
     """
-    Aligns the names of df_to_rename with the names of df_base based on bipartite matching on column
+    Aligns the names of df0 with the names of df1 based on bipartite matching on column
     Drops columns without a match
 
     Note: can't really handle nan or inf values in either matrix unless try_to_fix_inf=True
@@ -236,7 +236,10 @@ def rename_columns_using_matching(df_base, df_to_rename, column='raw_neuron_ind_
     df0_ind = df_base.loc(axis=1)[names0, column].to_numpy()
     df1_ind = df_to_rename.loc(axis=1)[names1, column].to_numpy()
 
-    matches, conf, _ = calc_bipartite_from_positions(df1_ind.T, df0_ind.T, try_to_fix_inf=try_to_fix_inf)
+    if column=="raw_neuron_ind_in_list" or column=="raw_segmentation_id":
+        matches, conf, _ = calc_bipartite_from_ids(df1_ind.T, df0_ind.T)
+    else:
+        matches, conf, _ = calc_bipartite_from_positions(df1_ind.T, df0_ind.T, try_to_fix_inf=try_to_fix_inf)
 
     # Start with default
     name_mapping = {n: 'unmatched_neuron' for n in names1}
