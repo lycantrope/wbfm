@@ -106,7 +106,6 @@ def process_trial(trial: int, df_gt: pd.DataFrame, res_file: str) -> dict:
         df_res_renamed, _, _, _ = rename_columns_using_matching(
             df_gt_padded, df_res, column='raw_segmentation_id', try_to_fix_inf=True
         )
-
         # Reduce both DataFrames to raw_segmentation_id level
         df_res_renamed = df_res_renamed.xs('raw_segmentation_id', axis=1, level=1)
         df_gt_padded = df_gt_padded.xs('raw_segmentation_id', axis=1, level=1)

@@ -91,7 +91,7 @@ def calc_bipartite_from_ids(xyz0: np.ndarray, xyz1: np.ndarray,
         Confidence scaling factor
     """
     import numba
-
+    print("using calc_bipartite_from_ids")
     @numba.jit(nopython=True)
     def nandist(u, v):
         """
