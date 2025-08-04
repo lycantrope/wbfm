@@ -613,7 +613,7 @@ class PaperMultiDatasetTriggeredAverage(PaperColoredTracePlotter):
                                          use_plotly, y_label=None, tight_layout=False)
             if to_show:
                 plt.show()
-            return
+            return fig, axes
 
         if fig_kwargs is None:
             fig_kwargs = {}
