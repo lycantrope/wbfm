@@ -883,7 +883,8 @@ class TriggeredAverageIndices:
         return duration_vec, censored_vec
 
     def __repr__(self):
-        return f"TriggeredAverageIndices: {self.behavioral_state.name} ({self.num_events} events found)"
+        beh_name = self.behavioral_state.name if self.behavioral_state is not None else "None"
+        return f"TriggeredAverageIndices: {beh_name} ({self.num_events} events found)"
 
 
 @dataclass
