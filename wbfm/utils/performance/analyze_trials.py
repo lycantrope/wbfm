@@ -62,9 +62,9 @@ def build_final_dict(gt_path, trial_dir, result_dir, trial_prefix):
     for trial_num in trials:
         trial_name = f"{trial_prefix}trial_{trial_num}"
         trial_name_config = f"trial_{trial_num}"
-        trial_path = os.path.join(trial_dir, trial_name)
+        trial_path = os.path.join(trial_dir, trial_name_config)
         result_path = os.path.join(result_dir, trial_name, "project_config.yaml")
-        config_path = os.path.join(trial_name_config, "train_config.yaml")
+        config_path = os.path.join(trial_path, "train_config.yaml")
 
         if not os.path.isfile(config_path):
             print(f"{trial_name}: train_config.yaml not found.")
