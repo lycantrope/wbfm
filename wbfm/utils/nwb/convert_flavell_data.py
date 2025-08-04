@@ -80,7 +80,7 @@ def convert_flavell_tracking_to_df(base_dir, tracking_fraction_threshold=0.5):
         # Build DataFrame: rows=time, columns=UIDs (i.e. neuron names), values=segmentation id (of the raw segmentation)
         df = pd.DataFrame.from_dict(tracking_data, orient='index').T
         # Flatten any list values in the DataFrame; Some UIDs may have multiple segmentation IDs... technically should be the union of the two
-        df = df.applymap(lambda x: x[0] if isinstance(x, list) else x)
+        df = df.applymap(lambda x: np.nan if isinstance(x, list) else x)
         # Remove objects with too few tracking points
         df = df.loc[:, df.notna().sum() >= tracking_fraction_threshold * len(df)]
 
