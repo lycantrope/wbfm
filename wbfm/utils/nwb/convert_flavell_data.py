@@ -113,6 +113,9 @@ def convert_flavell_tracking_to_df(base_dir, tracking_fraction_threshold=0.5, DE
 
         # Add MultiIndex column
         df.columns = pd.MultiIndex.from_product([df.columns, ['raw_segmentation_id']])
+        if DEBUG:
+            print(f"Final DataFrame has shape {df.shape} with df.count()={df.count()}")
+            print(df.head())
     return df, tracking_file
 
 
@@ -304,7 +307,7 @@ def convert_flavell_to_nwb(
     if df_tracking.empty:
         raise RuntimeError(f"Tracking file did not produce a valid dataframe; check formatting of {tracking_file}")
     
-    df_tracking = add_centroid_data_to_df_tracking(seg_dask, df_tracking, df_tracking_offset=1)
+    df_tracking = add_centroid_data_to_df_tracking(seg_dask, df_tracking)
     
     position, dt = df_to_nwb_tracking(df_tracking)
     if position is not None:

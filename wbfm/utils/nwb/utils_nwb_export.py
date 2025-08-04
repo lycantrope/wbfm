@@ -1520,21 +1520,28 @@ def add_centroid_data_to_df_tracking(seg_dask, df_tracking, df_tracking_offset=0
     
     # Note that df_tracking is 1-indexed, so the index will have to be fixed later
     for t, these_centroids in tqdm(centroids_dict.items(), desc="Mapping centroids to segmentation"):
+        if t + df_tracking_offset not in df_tracking.index:
+            logging.warning(f"Time {t + df_tracking_offset} not found in df_tracking index, skipping")
+            continue
+        # For each neuron, get the raw_segmentation_id at this time point and map it to the centroid coordinates
         for neuron in all_neurons:
             try:
                 raw_seg = df_tracking.loc[t+df_tracking_offset, (neuron, 'raw_segmentation_id')]
             except KeyError:
-                raw_seg = np.nan
+                logging.warning(f"Tracking DataFrame does not contain entry for neuron {neuron} at time {t+df_tracking_offset}")
+                continue
             if np.isnan(raw_seg):
                 continue
+
             try:
                 this_centroid = these_centroids[int(raw_seg)]
             except KeyError:
-                logging.error(f"Ground truth was annotated as {int(raw_seg)} at t={t}, but it doesn't exist in the image")
+                logging.error(f"Ground truth was annotated as {int(raw_seg)} at t={t}, but it doesn't exist in the image... this probably means the ground truth has an off-by-one error")
             for _name, _c in zip(coord_names, this_centroid):
                 mapped_centroids_dict[(neuron, _name)][t] = _c
     # Convert to dataframe, then combine with original tracking dataframe
     df_centroids = pd.DataFrame(mapped_centroids_dict)
+    # assert df_centroids.index.equals(df_tracking.index), f"Centroid DataFrame index {df_centroids.index} does not match tracking DataFrame index {df_tracking.index}"
     df_tracking = pd.concat([df_centroids, df_tracking], axis=1)
 
     return df_tracking
