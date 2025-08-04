@@ -1513,7 +1513,7 @@ def add_centroid_data_to_df_tracking(seg_dask, df_tracking, df_tracking_offset=0
     coord_names = ['x', 'y', 'z']
     all_keys = itertools.product(all_neurons, coord_names)
     def _init_nan_numpy():
-        _array = np.empty(np.max(df_tracking.index.values))  # Should not be the shape of df_tracking, which might have empty rows
+        _array = np.empty(np.max(df_tracking.index.values) + 1)  # Should not be the shape of df_tracking, which might have empty rows
         _array[:] = np.nan
         return _array
     mapped_centroids_dict = {k: _init_nan_numpy() for k in all_keys}
