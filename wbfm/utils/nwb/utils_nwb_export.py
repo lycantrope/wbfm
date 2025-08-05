@@ -1548,7 +1548,7 @@ def add_centroid_data_to_df_tracking(seg_dask, df_tracking, df_tracking_offset=0
     return df_tracking
 
 
-def add_segmentation_ids_given_video_segmentation(nwb_file):
+def add_segmentation_ids_given_video_segmentation(nwb_file, DEBUG=False):
     """
     In the case where the final neuron centroids are saved in the nwb file, but the table mapping those ids to neuron names is not,
     this function will add the centroid ids to the tracking dataframe.
@@ -1559,21 +1559,28 @@ def add_segmentation_ids_given_video_segmentation(nwb_file):
     with NWBHDF5IO(nwb_file, mode='r+') as nwb_io:
         nwb_obj = nwb_io.read()
 
-        # Get the final centroid ids
         activity = nwb_obj.processing['CalciumActivity']
+        # Check if the segmentation ids are already present
+        if 'NeuronSegmentationID' in activity.data_interfaces:
+            logging.info(f"Segmentation IDs already present in {nwb_file}, skipping addition.")
+            return nwb_obj
+
+        # Get the final centroid ids
         df_tracking = load_per_neuron_position(activity['NeuronCentroids'])
+        if DEBUG:
+            print(f"Loaded tracking DataFrame with shape {df_tracking.shape}: {df_tracking.head()}")
         
         # Create nwb table with these ids
-        timestamps = df_tracking.index.values
+        timestamps = np.arange(len(df_tracking.index))
         neuron_ids = df_tracking.columns.get_level_values(0).unique()
         dt = DynamicTable(name="NeuronSegmentationID", description="Segmentation IDs per neuron", id=timestamps)
         for nid in tqdm(neuron_ids, desc="Adding neuron IDs to DynamicTable"):
             # Create a vector with the id (i.e. column name) for each time point with a valid centroid, otherwise NaN
             seg_ids = np.zeros(len(timestamps), dtype=float)
             seg_ids[:] = name2int_neuron_and_tracklet(nid)  # Convert the neuron name to an integer ID
-            # Remove any invalid time points
-            valid_times = df_tracking.index[df_tracking[nid].notna()]
-            seg_ids[~np.isin(timestamps, valid_times)] = np.nan  #
+            # Remove any invalid time points, assuming all xyz coordinates are either present or nan
+            valid_times = timestamps[df_tracking.loc[:, (nid, 'x')].notna()]
+            seg_ids[~np.isin(timestamps, valid_times)] = np.nan
             # Add the column to the DynamicTable
             dt.add_column(name=str(nid), description=f"Raw Seg ID for {nid}", data=seg_ids)
 
