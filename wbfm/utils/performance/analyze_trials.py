@@ -5,6 +5,7 @@ import yaml
 import argparse
 from test_metric import process_trial
 from wbfm.utils.projects.finished_project_data import ProjectData
+import matplotlib.pyplot as plt
 
 
 def extract_val_loss(trial_path):
@@ -119,3 +120,20 @@ if __name__ == "__main__":
     print("\nFinal dictionary:")
     for k, v in final_dict.items():
         print(f"{k}: {v}")
+
+    # Plot
+    plt.figure(figsize=(8, 6))
+    plt.scatter(final_dict["val_loss"], final_dict["accuracy"], c='blue', s=100)
+
+    # Annotate each point with the trial number
+    for i, trial in enumerate(final_dict["trial"]):
+        plt.annotate(f'Trial {trial}', 
+                    (final_dict["val_loss"][i], final_dict["accuracy"][i]),
+                    textcoords="offset points", xytext=(5,5), ha='left')
+
+    plt.title("Validation Loss vs Accuracy")
+    plt.xlabel("Validation Loss")
+    plt.ylabel("Accuracy")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
