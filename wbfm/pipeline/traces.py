@@ -70,7 +70,7 @@ def match_segmentation_and_tracks_using_config(project_data: ProjectData,
     if DEBUG:
         frame_list = frame_list[:2]  # Shorten (to avoid break)
 
-    if not match_using_indices:
+    if match_using_indices:
         # If present, we can just directly use the columns from the final_tracks dataframe
         if 'raw_segmentation_id' not in final_tracks.columns:
             raise NotImplementedError("Matching using indices requires the 'raw_segmentation_id' column ")
