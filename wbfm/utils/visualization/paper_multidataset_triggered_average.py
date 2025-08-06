@@ -187,7 +187,7 @@ class PaperMultiDatasetTriggeredAverage(PaperColoredTracePlotter):
                 trace_opt = dict(residual_mode='pca')
                 trace_opt.update(trace_base_opt)
                 out = clustered_triggered_averages_from_dict_of_projects(self.all_projects, trigger_opt=trigger_opt,
-                                                                         trace_opt=trace_opt)
+                                                                         trace_opt=trace_opt, verbose=self.verbose)
                 self.dataset_clusterer_dict['residual'] = out[0]
                 self.intermediates_dict['residual'] = out[1]
 
@@ -196,7 +196,7 @@ class PaperMultiDatasetTriggeredAverage(PaperColoredTracePlotter):
                 trigger_opt['only_allow_events_during_state'] = BehaviorCodes.FWD
                 cluster_opt = {}
                 out = clustered_triggered_averages_from_dict_of_projects(self.all_projects, cluster_opt=cluster_opt,
-                                                                         trigger_opt=trigger_opt, trace_opt=trace_opt)
+                                                                         trigger_opt=trigger_opt, trace_opt=trace_opt, verbose=self.verbose)
                 self.dataset_clusterer_dict['residual_rectified_fwd'] = out[0]
                 self.intermediates_dict['residual_rectified_fwd'] = out[1]
 
@@ -205,7 +205,7 @@ class PaperMultiDatasetTriggeredAverage(PaperColoredTracePlotter):
                 trigger_opt['only_allow_events_during_state'] = BehaviorCodes.REV
                 cluster_opt = {}
                 out = clustered_triggered_averages_from_dict_of_projects(self.all_projects, cluster_opt=cluster_opt,
-                                                                         trigger_opt=trigger_opt, trace_opt=trace_opt)
+                                                                         trigger_opt=trigger_opt, trace_opt=trace_opt, verbose=self.verbose)
                 self.dataset_clusterer_dict['residual_rectified_rev'] = out[0]
                 self.intermediates_dict['residual_rectified_rev'] = out[1]
 
@@ -218,7 +218,7 @@ class PaperMultiDatasetTriggeredAverage(PaperColoredTracePlotter):
                     if self.verbose > 0:
                         print("Calculating residual collision-triggered averages")
                     out = clustered_triggered_averages_from_dict_of_projects(self.all_projects, trigger_opt=trigger_opt,
-                                                                             trace_opt=trace_opt)
+                                                                             trace_opt=trace_opt, verbose=self.verbose)
                     self.dataset_clusterer_dict['residual_collision'] = out[0]
                     self.intermediates_dict['residual_collision'] = out[1]
 
@@ -235,7 +235,7 @@ class PaperMultiDatasetTriggeredAverage(PaperColoredTracePlotter):
             if self.verbose > 0:
                 print("Calculating global REV-triggered averages")
             out = clustered_triggered_averages_from_dict_of_projects(self.all_projects, trigger_opt=trigger_opt,
-                                                                     trace_opt=trace_opt)
+                                                                     trace_opt=trace_opt, verbose=self.verbose)
             self.dataset_clusterer_dict['global_rev'] = out[0]
             self.intermediates_dict['global_rev'] = out[1]
 
@@ -245,7 +245,7 @@ class PaperMultiDatasetTriggeredAverage(PaperColoredTracePlotter):
             if self.verbose > 0:
                 print("Calculating global FWD-triggered averages")
             out = clustered_triggered_averages_from_dict_of_projects(self.all_projects, trigger_opt=trigger_opt,
-                                                                     trace_opt=trace_opt)
+                                                                     trace_opt=trace_opt, verbose=self.verbose)
             self.dataset_clusterer_dict['global_fwd'] = out[0]
             self.intermediates_dict['global_fwd'] = out[1]
 
@@ -263,7 +263,7 @@ class PaperMultiDatasetTriggeredAverage(PaperColoredTracePlotter):
                 if self.verbose > 0:
                     print(f"Calculating raw trace {trigger_type}-triggered averages")
                 out = clustered_triggered_averages_from_dict_of_projects(self.all_projects, trigger_opt=trigger_opt,
-                                                                         trace_opt=trace_opt)
+                                                                         trace_opt=trace_opt, verbose=self.verbose)
                 self.dataset_clusterer_dict[trigger_type] = out[0]
                 self.intermediates_dict[trigger_type] = out[1]
             except (IndexError, KeyError, NoBehaviorAnnotationsError):
@@ -848,7 +848,7 @@ class PaperMultiDatasetTriggeredAverage(PaperColoredTracePlotter):
 
         """
         df = self.get_df_triggered_from_trigger_type(trigger_type)
-        if remove_nonided_neurons
+        if remove_nonided_neurons:
             return [n for n in df.columns if 'neuron' not in n]
         else:
             return list(df.columns)

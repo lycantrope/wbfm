@@ -2625,7 +2625,7 @@ def calc_time_series_from_starts_and_ends(all_starts, all_ends, num_pts, min_dur
     return state_trace
 
 
-def clustered_triggered_averages_from_dict_of_projects(all_projects: dict, cluster_opt=None, **kwargs) \
+def clustered_triggered_averages_from_dict_of_projects(all_projects: dict, cluster_opt=None, verbose=0, **kwargs) \
         -> Tuple[ClusteredTriggeredAverages,
         Tuple[Dict[str, FullDatasetTriggeredAverages], pd.DataFrame, Dict[str, pd.DataFrame]]]:
     """
@@ -2664,31 +2664,32 @@ def clustered_triggered_averages_from_dict_of_projects(all_projects: dict, clust
     if len(all_triggered_average_classes) == 0:
         raise NoBehaviorAnnotationsError("No datasets had the requested behavior annotation")
 
+    tqdm_opt = dict(leave=False, disable=not verbose)
     # Combine all triggered averages dataframes, renaming to contain dataset information
     df_triggered_good = pd.concat(
-        {name: c.df_of_all_triggered_averages() for name, c in all_triggered_average_classes.items()}, axis=1)
+        {name: c.df_of_all_triggered_averages() for name, c in tqdm(all_triggered_average_classes.items(), **tqdm_opt, desc='Combining triggered averages')}, axis=1)
     df_triggered_good = flatten_multiindex_columns(df_triggered_good)
 
     # Combine all full traces dataframes, renaming to contain dataset information
     df_traces_good = pd.concat(
-        {name: c.df_traces for name, c in all_triggered_average_classes.items()}, axis=1)
+        {name: c.df_traces for name, c in tqdm(all_triggered_average_classes.items(), **tqdm_opt, desc='Combining full traces')}, axis=1)
     df_traces_good = flatten_multiindex_columns(df_traces_good)
 
     # Combine all behavior time series, renaming to contain dataset information
     df_behavior = pd.concat(
-        {name: c.ind_class.behavioral_annotation for name, c in all_triggered_average_classes.items()}, axis=1)
+        {name: c.ind_class.behavioral_annotation for name, c in tqdm(all_triggered_average_classes.items(), **tqdm_opt, desc='Combining behavior annotations')}, axis=1)
     # This one doesn't need to be flattened, because each dataset only has one column
 
     # Build a map back to the original data
     dict_of_triggered_traces = {}
-    for name, c in all_triggered_average_classes.items():
+    for name, c in tqdm(all_triggered_average_classes.items(), **tqdm_opt, desc='Building map to original data'):
         c.ind_class.z_score = False
         dict_of_triggered_traces[name] = c.dict_of_all_triggered_averages()
     dict_of_triggered_traces = flatten_nested_dict(dict_of_triggered_traces)
 
     # Check that the ind_preceding is the same between all ind_class, and save it
     ind_preceding = None
-    for name, c in all_triggered_average_classes.items():
+    for name, c in tqdm(all_triggered_average_classes.items(), **tqdm_opt, desc='Validating indices'):
         if ind_preceding is None:
             ind_preceding = c.ind_class.ind_preceding
         else:
@@ -2698,6 +2699,8 @@ def clustered_triggered_averages_from_dict_of_projects(all_projects: dict, clust
     # I'm not actually using the clustering functionality, this is just an old class
     default_cluster_opt = dict(linkage_threshold=12, verbose=1)
     default_cluster_opt.update(cluster_opt)
+    if verbose > 1:
+        print("Building final triggered average class")
     good_dataset_clusterer = ClusteredTriggeredAverages(df_triggered_good, **default_cluster_opt,
                                                         dict_of_triggered_traces=dict_of_triggered_traces,
                                                         _df_traces=df_traces_good,
