@@ -69,21 +69,26 @@ def match_segmentation_and_tracks_using_config(project_data: ProjectData,
     frame_list = list(range(params_start_volume, num_frames + params_start_volume - 1))
     if DEBUG:
         frame_list = frame_list[:2]  # Shorten (to avoid break)
+    coords = ['z', 'x', 'y']
+    def _get_zxy_from_pandas(t):
+        all_zxy = np.zeros((len(final_neuron_names), 3))
+        for i, name in enumerate(final_neuron_names):
+            all_zxy[i, :] = np.asarray(final_tracks[name][coords].loc[t])
+        return all_zxy
 
     if match_using_indices:
         # If present, we can just directly use the columns from the final_tracks dataframe
         if 'raw_segmentation_id' not in final_tracks.columns.get_level_values(1).unique():
             raise NotImplementedError("Matching using indices requires the 'raw_segmentation_id' column ")
-        
-        match_segmentation_and_tracks_using_indices(final_tracks, frame_list, all_matches)
+        try:
+            match_segmentation_and_tracks_using_indices(final_tracks, frame_list, all_matches)
+        except KeyError as e:
+            project_cfg.logger.error(f"Error matching segmentations and tracks using indices: {e}; "
+                                     "Rematching using centroids instead")
+            all_matches = defaultdict(list)
+            match_segmentation_and_tracks_using_centroids(_get_zxy_from_pandas, all_matches, frame_list, max_dist,
+                                                          project_data, DEBUG=DEBUG)
     else:
-        coords = ['z', 'x', 'y']
-        def _get_zxy_from_pandas(t):
-            all_zxy = np.zeros((len(final_neuron_names), 3))
-            for i, name in enumerate(final_neuron_names):
-                all_zxy[i, :] = np.asarray(final_tracks[name][coords].loc[t])
-            return all_zxy
-
         match_segmentation_and_tracks_using_centroids(_get_zxy_from_pandas, all_matches, frame_list, max_dist,
                                                       project_data, DEBUG=DEBUG)
 
