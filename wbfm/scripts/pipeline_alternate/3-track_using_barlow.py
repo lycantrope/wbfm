@@ -18,7 +18,7 @@ SETTINGS.CONFIG.READ_ONLY_CONFIG = False
 
 # Initialize sacred experiment
 ex = Experiment(save_git_info=False)
-ex.add_config(project_path=None, model_fname=None, results_subfolder=None, allow_hybrid_loading=True, use_projection_space=True, DEBUG=False)
+ex.add_config(project_path=None, model_fname=None, results_subfolder=None, allow_hybrid_loading=True, use_projection_space=False, DEBUG=False)
 
 
 @ex.config

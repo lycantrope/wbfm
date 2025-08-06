@@ -273,6 +273,7 @@ def combine_dataframes_using_max_of_column(df0, df1, column='likelihood'):
 
 
 def combine_dataframes_using_mode(all_dfs, column='raw_neuron_ind_in_list', i_base=0):
+    """Assumes that all_dfs[i_base] is the base dataframe, and all others are to be combined into it; only works well with >2 dataframes"""
     names = get_names_from_df(all_dfs[i_base])
     new_df = all_dfs[i_base].copy()
 

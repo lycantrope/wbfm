@@ -1446,6 +1446,7 @@ class WormFullVideoPosture:
                                        behavior_name=None,
                                        use_manual_annotation=None,
                                        use_hilbert_phase=False,
+                                       hilbert_phase_body_segment=15,
                                        **kwargs):
         """
         Calculates a list of indices that can be used to calculate triggered averages of 'state' ONSET
@@ -1471,6 +1472,7 @@ class WormFullVideoPosture:
         behavior_name - Name of behavior to calculate and use; overrides 'state'
         use_manual_annotation - Whether to load manually annotated behaviors or use automatic annotations
         use_hilbert_phase - Whether to use the hilbert phase of the worm as the behavioral annotation
+        hilbert_phase_body_segment - Which body segment to use for the hilbert phase (ignored if not using hilbert phase; defaults to 15)
         kwargs - passed to TriggeredAverageIndices
 
         Returns
@@ -1494,7 +1496,7 @@ class WormFullVideoPosture:
             if use_hilbert_phase:
                 df_behavioral_annotation = self.hilbert_phase(fluorescence_fps=True, reset_index=True)
                 # Choose one body segment
-                behavioral_annotation = df_behavioral_annotation.loc[:, 15]
+                behavioral_annotation = df_behavioral_annotation.loc[:, hilbert_phase_body_segment]
                 behavioral_annotation = behavioral_annotation - behavioral_annotation.mean()
                 kwargs['behavioral_annotation_is_continuous'] = True
             elif behavior_name is None:

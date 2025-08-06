@@ -2,6 +2,7 @@ import logging
 import os
 import re
 from pathlib import Path
+from wbfm.utils.external.utils_neuron_names import name2int_neuron_and_tracklet
 
 from dask import compute, delayed
 import dask.array as da
@@ -1513,28 +1514,81 @@ def add_centroid_data_to_df_tracking(seg_dask, df_tracking, df_tracking_offset=0
     coord_names = ['x', 'y', 'z']
     all_keys = itertools.product(all_neurons, coord_names)
     def _init_nan_numpy():
-        _array = np.empty(np.max(df_tracking.index.values))  # Should not be the shape of df_tracking, which might have empty rows
+        _array = np.empty(np.max(df_tracking.index.values) + 1)  # Should not be the shape of df_tracking, which might have empty rows
         _array[:] = np.nan
         return _array
     mapped_centroids_dict = {k: _init_nan_numpy() for k in all_keys}
     
     # Note that df_tracking is 1-indexed, so the index will have to be fixed later
     for t, these_centroids in tqdm(centroids_dict.items(), desc="Mapping centroids to segmentation"):
+        if t + df_tracking_offset not in df_tracking.index:
+            logging.warning(f"Time {t + df_tracking_offset} not found in df_tracking index, skipping")
+            continue
+        # For each neuron, get the raw_segmentation_id at this time point and map it to the centroid coordinates
         for neuron in all_neurons:
             try:
                 raw_seg = df_tracking.loc[t+df_tracking_offset, (neuron, 'raw_segmentation_id')]
             except KeyError:
-                raw_seg = np.nan
+                logging.warning(f"Tracking DataFrame does not contain entry for neuron {neuron} at time {t+df_tracking_offset}")
+                continue
             if np.isnan(raw_seg):
                 continue
+
             try:
                 this_centroid = these_centroids[int(raw_seg)]
             except KeyError:
-                logging.error(f"Ground truth was annotated as {int(raw_seg)} at t={t}, but it doesn't exist in the image")
+                logging.error(f"Ground truth was annotated as {int(raw_seg)} at t={t}, but it doesn't exist in the image... this probably means the ground truth has an off-by-one error")
             for _name, _c in zip(coord_names, this_centroid):
                 mapped_centroids_dict[(neuron, _name)][t] = _c
     # Convert to dataframe, then combine with original tracking dataframe
     df_centroids = pd.DataFrame(mapped_centroids_dict)
+    # assert df_centroids.index.equals(df_tracking.index), f"Centroid DataFrame index {df_centroids.index} does not match tracking DataFrame index {df_tracking.index}"
     df_tracking = pd.concat([df_centroids, df_tracking], axis=1)
 
     return df_tracking
+
+
+def add_segmentation_ids_given_video_segmentation(nwb_file, DEBUG=False):
+    """
+    In the case where the final neuron centroids are saved in the nwb file, but the table mapping those ids to neuron names is not,
+    this function will add the centroid ids to the tracking dataframe.
+
+    This assumes that any segmentation will be generated from the centroids themselves, and retain the same ids as the centroids.
+    """
+    # Load the NWB file
+    with NWBHDF5IO(nwb_file, mode='r+') as nwb_io:
+        nwb_obj = nwb_io.read()
+
+        activity = nwb_obj.processing['CalciumActivity']
+        # Check if the segmentation ids are already present
+        if 'NeuronSegmentationID' in activity.data_interfaces:
+            logging.info(f"Segmentation IDs already present in {nwb_file}, skipping addition.")
+            return nwb_obj
+
+        # Get the final centroid ids
+        df_tracking = load_per_neuron_position(activity['NeuronCentroids'])
+        if DEBUG:
+            print(f"Loaded tracking DataFrame with shape {df_tracking.shape}: {df_tracking.head()}")
+        
+        # Create nwb table with these ids
+        timestamps = np.arange(len(df_tracking.index))
+        neuron_ids = df_tracking.columns.get_level_values(0).unique()
+        dt = DynamicTable(name="NeuronSegmentationID", description="Segmentation IDs per neuron", id=timestamps)
+        for nid in tqdm(neuron_ids, desc="Adding neuron IDs to DynamicTable"):
+            # Create a vector with the id (i.e. column name) for each time point with a valid centroid, otherwise NaN
+            seg_ids = np.zeros(len(timestamps), dtype=float)
+            seg_ids[:] = name2int_neuron_and_tracklet(nid)  # Convert the neuron name to an integer ID
+            # Remove any invalid time points, assuming all xyz coordinates are either present or nan
+            valid_times = timestamps[df_tracking.loc[:, (nid, 'x')].notna()]
+            seg_ids[~np.isin(timestamps, valid_times)] = np.nan
+            # Add the column to the DynamicTable
+            dt.add_column(name=str(nid), description=f"Raw Seg ID for {nid}", data=seg_ids)
+
+        # Add the DynamicTable to the NWB file
+        nwb_obj.processing['CalciumActivity'].add(dt)
+
+        # Save the NWB file
+        nwb_io.write(nwb_obj)
+        
+    logging.info(f"Added segmentation IDs to NWB file {nwb_file}.")
+    return nwb_obj

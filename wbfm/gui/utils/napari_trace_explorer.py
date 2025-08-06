@@ -126,12 +126,6 @@ class NapariTraceExplorer(QtWidgets.QWidget):
         self.changeNeuronDropdown.currentIndexChanged.connect(self._select_neuron_using_dropdown)
         self.vbox1.addWidget(self.changeNeuronDropdown)
 
-        self.changeChannelDropdown = QtWidgets.QComboBox()
-        self.changeChannelDropdown.addItems(['green', 'red', 'ratio', 'linear_model', 'df_over_f_20', 'dr_over_r_20'])
-        self.changeChannelDropdown.setCurrentText('ratio')
-        self.changeChannelDropdown.currentIndexChanged.connect(self.update_trace_subplot)
-        self.vbox1.addWidget(self.changeChannelDropdown)
-
         # Change traces vs tracklet mode (we need the class even if we don't have the button)
         self.changeTraceTrackletDropdown = QtWidgets.QComboBox()
         self.changeTraceTrackletDropdown.addItems(['traces', 'tracklets'])
@@ -171,8 +165,10 @@ class NapariTraceExplorer(QtWidgets.QWidget):
         self.verticalLayout.addWidget(self.groupBox2TraceCalculation)
         if self.load_tracklets:
             self.verticalLayout.addWidget(self.groupBox3TrackletCorrection)
-        # self.verticalLayout.addWidget(self.groupBox5)
-        self.verticalLayout.addWidget(self.groupBox6SegmentationCorrection)
+            # self.verticalLayout.addWidget(self.groupBox5)
+            self.verticalLayout.addWidget(self.groupBox6SegmentationCorrection)
+        self.verticalLayout.addWidget(self.groupBox5LayerCreation)
+        self.verticalLayout.addWidget(self.groupBox7SaveData)
 
         try:
             self.initialize_track_layers()
@@ -227,6 +223,12 @@ class NapariTraceExplorer(QtWidgets.QWidget):
         # Change traces (dropdown)
         self.groupBox2TraceCalculation = QtWidgets.QGroupBox("Trace calculation options", self.verticalLayoutWidget)
         self.formlayout3 = QtWidgets.QFormLayout(self.groupBox2TraceCalculation)
+
+        self.changeChannelDropdown = QtWidgets.QComboBox()
+        self.changeChannelDropdown.addItems(['green', 'red', 'ratio', 'linear_model', 'df_over_f_20', 'dr_over_r_20'])
+        self.changeChannelDropdown.setCurrentText('ratio')
+        self.changeChannelDropdown.currentIndexChanged.connect(self.update_trace_subplot)
+        self.formlayout3.addRow("Trace calculation mode:", self.changeChannelDropdown)
 
         if self.load_tracklets:
             self.changeSubplotMarkerDropdown = QtWidgets.QComboBox()
@@ -2118,7 +2120,7 @@ def napari_trace_explorer_from_config(project_path: str, app=None,
                                                        to_load_interactivity=load_tracklets,
                                                        to_load_segmentation_metadata=True,
                                                        to_load_frames=load_tracklets,  # This is used for ground truth comparison, which requires tracklets
-                                                       initialization_kwargs=initialization_kwargs)
+                                                       initialization_kwargs=initialization_kwargs, allow_hybrid_loading=True)
     if DEBUG:
         logging.debug(project_data)
     # If I don't set this to false, need to debug custom dataframe here

@@ -2,17 +2,14 @@ import os
 from collections import defaultdict
 
 import numpy as np
-import zarr
 
-from wbfm.utils import traces
 from wbfm.utils.external.utils_zarr import zip_raw_data_zarr
 from wbfm.utils.general.postprocessing.utils_metadata import region_props_all_volumes, \
     _convert_nested_dict_to_dataframe
 from wbfm.utils.projects.finished_project_data import ProjectData
-from wbfm.utils.projects.project_config_classes import SubfolderConfigFile, ModularProjectConfig
 from wbfm.utils.projects.utils_project import safe_cd
-from wbfm.utils.traces.traces_pipeline import _unpack_configs_for_traces, match_segmentation_and_tracks, \
-    _unpack_configs_for_extraction, _save_traces_as_hdf_and_update_configs
+from wbfm.utils.traces.traces_pipeline import _unpack_configs_for_traces, match_segmentation_and_tracks_using_centroids, \
+    _unpack_configs_for_extraction, _save_traces_as_hdf_and_update_configs, match_segmentation_and_tracks_using_indices
 from wbfm.utils.general.high_performance_pandas import get_names_from_df
 from wbfm.utils.visualization.plot_traces import make_default_summary_plots_using_config
 from wbfm.utils.visualization.utils_segmentation import _unpack_config_reindexing, reindex_segmentation
@@ -20,7 +17,7 @@ from wbfm.utils.visualization.utils_segmentation import _unpack_config_reindexin
 
 def match_segmentation_and_tracks_using_config(project_data: ProjectData,
                                                allow_only_global_tracker: bool = False,
-                                               match_using_indices: bool = False,
+                                               match_using_indices: bool = True,
                                                DEBUG: bool = False) -> None:
     """
     Connect the 3d traces to previously segmented masks
@@ -67,11 +64,19 @@ def match_segmentation_and_tracks_using_config(project_data: ProjectData,
     # Main loop: Match segmentations to tracks
     # Also: get connected red brightness and mask
     # Initialize multi-index dataframe for data
-    all_matches = defaultdict(list)  # key = i_vol; val = Nx3-element list
+    all_matches = defaultdict(list)  # key = i_vol; val = [Final idx, segmentation idx, confidence]
     # TODO: Why is this one frame too short?
     frame_list = list(range(params_start_volume, num_frames + params_start_volume - 1))
+    if DEBUG:
+        frame_list = frame_list[:2]  # Shorten (to avoid break)
 
-    if not match_using_indices:
+    if match_using_indices:
+        # If present, we can just directly use the columns from the final_tracks dataframe
+        if 'raw_segmentation_id' not in final_tracks.columns.get_level_values(1).unique():
+            raise NotImplementedError("Matching using indices requires the 'raw_segmentation_id' column ")
+        
+        match_segmentation_and_tracks_using_indices(final_tracks, frame_list, all_matches)
+    else:
         coords = ['z', 'x', 'y']
         def _get_zxy_from_pandas(t):
             all_zxy = np.zeros((len(final_neuron_names), 3))
@@ -79,13 +84,8 @@ def match_segmentation_and_tracks_using_config(project_data: ProjectData,
                 all_zxy[i, :] = np.asarray(final_tracks[name][coords].loc[t])
             return all_zxy
 
-        project_cfg.logger.info("Matching segmentation and tracked positions...")
-        if DEBUG:
-            frame_list = frame_list[:2]  # Shorten (to avoid break)
-        match_segmentation_and_tracks(_get_zxy_from_pandas, all_matches, frame_list, max_dist,
-                                      project_data, DEBUG=DEBUG)
-    else:
-        raise NotImplementedError("Matching using indices is not yet implemented")
+        match_segmentation_and_tracks_using_centroids(_get_zxy_from_pandas, all_matches, frame_list, max_dist,
+                                                      project_data, DEBUG=DEBUG)
 
     relative_fname = traces_cfg.config['all_matches']
     project_cfg.pickle_data_in_local_project(all_matches, relative_fname)
@@ -150,7 +150,7 @@ def reindex_segmentation_using_config(project_data: ProjectData, DEBUG=False):
     return out_fname
 
 
-def full_step_4_make_traces_from_config(project_cfg, allow_only_global_tracker=False, 
+def full_step_4_make_traces_from_config(project_cfg, allow_only_global_tracker=False, match_using_indices=True, 
                                         DEBUG=False, **project_kwargs):
     project_dir = project_cfg.project_dir
     project_data = ProjectData.load_final_project_data(project_cfg, **project_kwargs)
@@ -161,6 +161,7 @@ def full_step_4_make_traces_from_config(project_cfg, allow_only_global_tracker=F
         # Overwrites matching pickle object; nothing needs to be reloaded
         match_segmentation_and_tracks_using_config(project_data,
                                                    allow_only_global_tracker=allow_only_global_tracker,
+                                                   match_using_indices=match_using_indices,
                                                    DEBUG=DEBUG)
 
         # Creates segmentations indexed to tracking

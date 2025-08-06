@@ -709,24 +709,34 @@ class ProjectData:
                         project_data.logger.info(f"Successfully imported raw data from nwb file")
                     else:
                         project_data.logger.info(f"Did not find raw data in nwb file, continuing")
-                # Second: load preprocessed data
-                if project_data.red_data is None:
-                    if project_data_nwb.red_data is not None:
-                        project_data.red_data = project_data_nwb.red_data
-                        project_data.green_data = project_data_nwb.green_data
-                        _update_project_with_nwb_file_handles()
-                        project_data.logger.info(f"Successfully loaded red and green data from nwb file (no metadata loaded)")
-                    else:
-                        project_data.logger.info(f"Did not find red and green data in nwb file, continuing")
 
-                # Third: load raw segmentation
-                if project_data.raw_segmentation is None:
-                    if project_data_nwb.raw_segmentation is not None:
-                        project_data.raw_segmentation = project_data_nwb.raw_segmentation
-                        _update_project_with_nwb_file_handles()
-                        project_data.logger.info(f"Successfully loaded raw segmentation from nwb file (no metadata loaded)")
-                    else:
-                        project_data.logger.info(f"Did not find raw segmentation in nwb file, continuing")
+                # Define processing fields to attempt to load from the NWB project
+                fields_to_load = [
+                    ("red_data", True),
+                    ("green_data", True),
+                    ("red_traces", True),
+                    ("green_traces", True),
+                    ("segmentation", True),
+                    ("raw_segmentation", True),
+                    ("final_tracks", False),
+                    ("intermediate_global_tracks", False),
+                ]
+
+                for field, update_handles in fields_to_load:
+                    if getattr(project_data, field, None) is None:
+                        nwb_value = getattr(project_data_nwb, field, None)
+                        if nwb_value is not None:
+                            setattr(project_data, field, nwb_value)
+                            if update_handles:
+                                _update_project_with_nwb_file_handles()
+                            project_data.logger.info(
+                                f"Successfully loaded {field.replace('_', ' ')} from nwb file"
+                                f"{' (no metadata loaded)' if field in ['red_data', 'green_data', 'raw_segmentation'] else ''}"
+                            )
+                        else:
+                            project_data.logger.info(
+                                f"Did not find {field.replace('_', ' ')} in nwb file, continuing"
+                            )
             else:
                 project_data.logger.info(f"Found no nwb file, continuing")
 
