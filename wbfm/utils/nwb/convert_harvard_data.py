@@ -195,7 +195,7 @@ def convert_harvard_to_nwb(input_path,
         series_shape = (num_frames, ) + frame_shape
         
         # Build metadata objects
-        grid_spacing = (0.3, 0.3, 1.75)  # Harvard doesn't actually say what their xy resolution is
+        grid_spacing = (0.45, 0.45, 1.75)
         device = nwbfile.create_device(name=device_name)
         CalcImagingVolume, _ = build_optical_channel_objects(device, grid_spacing, ['red', 'green'])
         # Add directly to the file to prevent hdmf.build.errors.OrphanContainerBuildError
