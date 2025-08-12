@@ -772,7 +772,7 @@ class NapariTraceExplorer(QtWidgets.QWidget):
         self.zoom_using_current_neuron_or_tracklet()
 
         layer_to_add_callback = self.raw_seg_layer
-        if layer_to_add_callback is not None:
+        if layer_to_add_callback is not None and self.load_tracklets:
             added_segmentation_callbacks = [
                 self.update_segmentation_status_label,
                 self.toggle_highlight_selected_neuron
