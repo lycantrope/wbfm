@@ -83,11 +83,11 @@ missing_data_imputed_df: 3-tracking/postprocessing/imputed_3d_tracks.h5
 # Alternative Barlow tracker and clustering
 ###################
 # If these values are fractions, then they are multiplied by the number of volumes in the dataset
-db_opt:
+opt_db:
   min_cluster_size: 0.5
   min_samples: 0.02
 
-umap_opt:
+opt_umap:
   n_components: 10
   n_neighbors: 10
   min_dist: 0.0
