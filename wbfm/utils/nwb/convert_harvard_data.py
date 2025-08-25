@@ -45,7 +45,7 @@ def segment_from_centroids_using_watershed(centroids, video, compactness=0.5, dt
         video_frame = video[t]
         frame_centroids = centroids[t, ...]
         
-        # Create markers from centroids
+        # Create markers as a full-size volume from centroids
         markers = np.zeros_like(video_frame, dtype=np.int32)
         
         for i, (x, y, z) in enumerate(frame_centroids):
@@ -57,6 +57,10 @@ def segment_from_centroids_using_watershed(centroids, video, compactness=0.5, dt
             if (0 <= z_int < Z and 0 <= y_int < Y and 0 <= x_int < X):
                 # Labels start from 1, and assume the centroids are in the correct order
                 markers[x_int, y_int, z_int] = i + 1
+                # Also make sure that this exact point is not 0 in the video
+                if video_frame[x_int, y_int, z_int] <= noise_threshold:
+                    video_frame[x_int, y_int, z_int] = noise_threshold + 1
+                    logging.warning(f"Very dim centroid ({i+1}) found for time {t}; setting coordinates to threshold level ({noise_threshold+1}) ")
         
         # If no valid markers, return empty segmentation
         if markers.max() == 0:
