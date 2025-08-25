@@ -103,7 +103,6 @@ def segment_from_centroids_using_watershed(centroids, video, compactness=0.5, dt
     
     # Stack results
     # segmented_video = dask_stack_volumes(_iter_segment_video(video, centroids))
-    # segmented_video = dask_stack_volumes([da.from_delayed(_iter_segment_video(video, centroids), shape=(X, Y, Z), dtype=dtype) for _ in range(T)])
     segmented_video = dask_stack_volumes([da.from_delayed(_iter_segment_video(video, centroids, t), shape=(X, Y, Z), dtype=dtype) for t in range(T)])
 
     return segmented_video
@@ -118,7 +117,7 @@ def convert_harvard_to_nwb(input_path,
                            DEBUG=False):
 
     start_time = time.time()
-    
+
     # === USER PARAMETERS ===
     experiment_name = input_path.split("/")[-1].split(".")[0]
     if output_path is None:
@@ -275,7 +274,10 @@ if __name__ == "__main__":
     parser.add_argument('--debug', action='store_true', help='If set, only convert the first 10 time points')
 
     args = parser.parse_args()
-
+    
+    import dask
+    dask.config.set(scheduler='synchronous')  # overwrite default with single-threaded scheduler
+    
     convert_harvard_to_nwb(
         input_path=args.input_path,
         output_path=args.output_path,
