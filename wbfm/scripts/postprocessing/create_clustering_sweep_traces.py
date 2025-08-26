@@ -182,7 +182,7 @@ def main():
             )
 
             # 2. Modify YAML (after copy)
-            new_project_path = Path(project_base_path) + trial_name
+            new_project_path = project_base_path + trial_name
             modify_jobid = submit_modify_config_job(
                 trial_name, new_project_path, opt_db_params, opt_umap_params,
                 dependency=copy_jobid, debug=args.debug
