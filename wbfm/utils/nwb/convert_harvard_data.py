@@ -47,7 +47,7 @@ def segment_from_centroids_using_watershed(centroids, video, compactness=0.5, dt
     
     # Stack results
     # segmented_video = dask_stack_volumes(_iter_segment_video(video, centroids))
-    segmented_video = dask_stack_volumes([da.from_delayed(_iter_segment_video(video, centroids, t), shape=(X, Y, Z), dtype=dtype) for t in range(T)])
+    segmented_video = dask_stack_volumes([da.from_delayed(_iter_segment_video(video, centroids, t, noise_threshold, dtype, compactness), shape=(X, Y, Z), dtype=dtype) for t in range(T)])
 
     return segmented_video
 
