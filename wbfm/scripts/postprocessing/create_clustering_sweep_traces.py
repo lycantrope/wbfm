@@ -148,8 +148,8 @@ def main():
     }
     opt_umap_grid = {
         "n_components": [10, 20],
-        "n_neighbors": [5, 10],
-        "min_dist": [0.0, 0.1],
+        "n_neighbors": [5, 10, 30],
+        "min_dist": [0.0],
     }
 
     # Build all combinations
