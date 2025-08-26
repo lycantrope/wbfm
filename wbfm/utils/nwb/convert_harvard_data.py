@@ -280,8 +280,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     
-    import dask
-    dask.config.set(scheduler='synchronous')  # overwrite default with single-threaded scheduler
+    # import dask
+    # dask.config.set(scheduler='synchronous')  # overwrite default with single-threaded scheduler
     
     convert_harvard_to_nwb(
         input_path=args.input_path,
