@@ -96,6 +96,10 @@ def submit_modify_config_job(trial_name, new_project_path, opt_db_params, opt_um
         f"config_path = pathlib.Path('{new_project_path}') / '3-tracking' / 'tracking_config.yaml'\n"
         f"with open(config_path, 'r') as f:\n"
         f"    config = yaml.safe_load(f)\n"
+        f"if 'opt_db' not in config or config['opt_db'] is None:\n"
+        f"    config['opt_db'] = {{}}\n"
+        f"if 'opt_umap' not in config or config['opt_umap'] is None:\n"
+        f"    config['opt_umap'] = {{}}\n"
         f"config['opt_db'].update({opt_db_params})\n"
         f"config['opt_umap'].update({opt_umap_params})\n"
         f"with open(config_path, 'w') as f:\n"
@@ -104,6 +108,7 @@ def submit_modify_config_job(trial_name, new_project_path, opt_db_params, opt_um
         f"EOF"
     )
     return write_and_submit_job(trial_name, "modify_config", cmd, dependency=dependency, debug=debug)
+
 
 def submit_tracking_job(trial_name, new_location, barlow_model, track_script, dependency_jobid, debug=False, use_projection_space=True):
     project_path = f"{new_location}{trial_name}"
