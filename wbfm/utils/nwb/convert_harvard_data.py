@@ -114,6 +114,7 @@ def convert_harvard_to_nwb(input_path,
                            identifier="Harvard",
                            device_name="Harvard",
                            imaging_rate=10.0,
+                           eager_segmentation_mode=False,
                            DEBUG=False):
 
     start_time = time.time()
@@ -231,6 +232,9 @@ def convert_harvard_to_nwb(input_path,
 
         # Calculate segmentation using simple watershed
         seg_dask = segment_from_centroids_using_watershed(points, imvol_dask, DEBUG=DEBUG)
+        if eager_segmentation_mode:
+            print(f"Eager segmentation mode enabled; computing segmentation in memory; estimated size: {seg_dask.nbytes / (1024**3):.2f} GB")
+            seg_dask = seg_dask.compute()
 
         chunk_seg = (1,) + frame_shape[:-1]  # chunk along time only
         print(f"Segmentations will be stored with chunk size {chunk_seg} and size {seg_dask.shape}")
@@ -271,6 +275,7 @@ if __name__ == "__main__":
     parser.add_argument('--identifier', type=str, default='samuel_001', help='NWB file identifier')
     parser.add_argument('--device_name', type=str, default='HarvardMicroscope', help='Device name')
     parser.add_argument('--imaging_rate', type=float, default=10.0, help='Imaging rate (Hz)')
+    parser.add_argument('--eager_segmentation_mode', action='store_true', help='Instead of lazy segmentation, compute segmentation eagerly in memory (may be much faster)')
     parser.add_argument('--debug', action='store_true', help='If set, only convert the first 10 time points')
 
     args = parser.parse_args()
@@ -285,6 +290,7 @@ if __name__ == "__main__":
         identifier=args.identifier,
         device_name=args.device_name,
         imaging_rate=args.imaging_rate,
+        eager_segmentation_mode=args.eager_segmentation_mode,
         DEBUG=args.debug
     )
 
