@@ -82,13 +82,13 @@ def _iter_segment_video(video, centroids, t, noise_threshold, dtype, compactness
     if markers.max() == 0:
         return np.zeros_like(video_frame, dtype=dtype)
     
-    # Apply distance transform to the volume
-    distance = ndi.distance_transform_edt(video_frame)
-    
-    # Apply watershed segmentation
     try:
+        # Apply distance transform to the volume
+        distance = ndi.distance_transform_edt(video_frame)
+    
+        # Apply watershed segmentation
         segmentation = watershed(
-            -distance, 
+            -distance,
             markers, 
             compactness=compactness,
             mask=video_frame > noise_threshold,
@@ -246,6 +246,11 @@ def convert_harvard_to_nwb(input_path,
         ))
 
         # Calculate segmentation using simple watershed
+        with ProgressBar():
+            # Regardless, load the image array into memory for segmentation
+            imvol_dask = imvol_dask.compute()
+        print("Image data loaded into memory for segmentation")
+
         seg_dask = segment_from_centroids_using_watershed(points, imvol_dask, DEBUG=DEBUG)
         if eager_segmentation_mode:
             print(f"Eager segmentation mode enabled; computing segmentation in memory; estimated size: {seg_dask.nbytes / (1024**3):.2f} GB")
@@ -297,7 +302,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     # Start Dask dashboard for visualization
-    client = Client(processes=args.use_processes, n_workers=4)  # Use threads instead of processes
+    client = Client(processes=args.use_processes, n_workers= 4 if args.eager_segmentation_mode else 16)
     print(f"Dask dashboard available at: {client.dashboard_link}")
     print("If running on a remote computer, you may need to set up SSH port forwarding to access the dashboard in your browser.")
     print("For example, run the following command on your local machine:")
