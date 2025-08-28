@@ -289,11 +289,12 @@ if __name__ == "__main__":
     parser.add_argument('--device_name', type=str, default='HarvardMicroscope', help='Device name')
     parser.add_argument('--imaging_rate', type=float, default=10.0, help='Imaging rate (Hz)')
     parser.add_argument('--eager_segmentation_mode', action='store_true', help='Instead of lazy segmentation, compute segmentation eagerly in memory (may be much faster)')
+    parser.add_argument('--use_processes', action='store_true', help='Instead of threads for dask, use processes (may be much faster for watershed step)')
     parser.add_argument('--debug', action='store_true', help='If set, only convert the first 10 time points')
 
     args = parser.parse_args()
     # Start Dask dashboard for visualization
-    client = Client(processes=False, n_workers=4)  # Use threads instead of processes
+    client = Client(processes=args.use_processes, n_workers=8)  # Use threads instead of processes
     print(f"Dask dashboard available at: {client.dashboard_link}")
     print("If running on a remote computer, you may need to set up SSH port forwarding to access the dashboard in your browser.")
     print("For example, run the following command on your local machine:")
