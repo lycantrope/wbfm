@@ -28,10 +28,6 @@ def main(_config, _run, _log):
     python 0a-create_new_project_from_nwb.py with
         nwb_file='/path/to/your/data.nwb'
         project_dir='/scratch/neurobiology/zimmer/fieseler/wbfm_projects/exposure_12ms'
-        task_name=gfp
-        experimenter=C
-        # OPTIONAL:
-        neuropal_path='/scratch/neurobiology/zimmer/ulises/wbfm/20220824/data/ZIM2319_worm2/20220824_ZIM2319_worm2_gfp_neuropal.h5'
 
     See also wbfm/scripts/0a-create_new_project.py
     """
