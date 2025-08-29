@@ -683,14 +683,13 @@ class ProjectData:
 
         # Hybrid loading using both styles:
         #   If the project was loaded via a config file path, but has steps missing, then try to also load the nwb
-        if allow_hybrid_loading:
+        if not loaded_via_nwb and allow_hybrid_loading:
             try:
                 cfg_nwb = project_data.project_config.get_nwb_config()
             except PermissionError as e:
                 project_data.logger.warning(f"Hybrid loading was set to True, but got a permission error; unable to load nwb. If there is no nwb file, this is not a problem. Full error: {e}")
                 allow_hybrid_loading = False
 
-        if not loaded_via_nwb and allow_hybrid_loading:
             nwb_filename = cfg_nwb.resolve_relative_path_from_config('nwb_filename')
             if nwb_filename is not None and os.path.exists(nwb_filename):
                 project_data.logger.info(f"Found nwb file at {nwb_filename}; attempting to load additional data or analysis")
