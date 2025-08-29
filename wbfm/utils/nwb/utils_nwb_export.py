@@ -1548,6 +1548,23 @@ def add_centroid_data_to_df_tracking(seg_dask, df_tracking, df_tracking_offset=0
     return df_tracking
 
 
+def calc_simple_segmentation_mapping_table(df_tracking):
+    """Create nwb table with the ids, assuming the column names correspond to the raw segmentation ids"""
+    timestamps = np.arange(len(df_tracking.index))
+    neuron_ids = df_tracking.columns.get_level_values(0).unique()
+    dt = DynamicTable(name="NeuronSegmentationID", description="Segmentation IDs per neuron", id=timestamps)
+    for nid in tqdm(neuron_ids, desc="Adding neuron IDs to DynamicTable"):
+        # Create a vector with the id (i.e. column name) for each time point with a valid centroid, otherwise NaN
+        seg_ids = np.zeros(len(timestamps), dtype=float)
+        seg_ids[:] = name2int_neuron_and_tracklet(nid)  # Convert the neuron name to an integer ID
+        # Remove any invalid time points, assuming all xyz coordinates are either present or nan
+        valid_times = timestamps[df_tracking.loc[:, (nid, 'x')].notna()]
+        seg_ids[~np.isin(timestamps, valid_times)] = np.nan
+        # Add the column to the DynamicTable
+        dt.add_column(name=str(nid), description=f"Raw Seg ID for {nid}", data=seg_ids)
+    return dt
+
+
 def add_segmentation_ids_given_video_segmentation(nwb_file, DEBUG=False):
     """
     In the case where the final neuron centroids are saved in the nwb file, but the table mapping those ids to neuron names is not,
@@ -1569,22 +1586,8 @@ def add_segmentation_ids_given_video_segmentation(nwb_file, DEBUG=False):
         df_tracking = load_per_neuron_position(activity['NeuronCentroids'])
         if DEBUG:
             print(f"Loaded tracking DataFrame with shape {df_tracking.shape}: {df_tracking.head()}")
-        
-        # Create nwb table with these ids
-        timestamps = np.arange(len(df_tracking.index))
-        neuron_ids = df_tracking.columns.get_level_values(0).unique()
-        dt = DynamicTable(name="NeuronSegmentationID", description="Segmentation IDs per neuron", id=timestamps)
-        for nid in tqdm(neuron_ids, desc="Adding neuron IDs to DynamicTable"):
-            # Create a vector with the id (i.e. column name) for each time point with a valid centroid, otherwise NaN
-            seg_ids = np.zeros(len(timestamps), dtype=float)
-            seg_ids[:] = name2int_neuron_and_tracklet(nid)  # Convert the neuron name to an integer ID
-            # Remove any invalid time points, assuming all xyz coordinates are either present or nan
-            valid_times = timestamps[df_tracking.loc[:, (nid, 'x')].notna()]
-            seg_ids[~np.isin(timestamps, valid_times)] = np.nan
-            # Add the column to the DynamicTable
-            dt.add_column(name=str(nid), description=f"Raw Seg ID for {nid}", data=seg_ids)
 
-        # Add the DynamicTable to the NWB file
+        dt = calc_simple_segmentation_mapping_table(df_tracking)
         nwb_obj.processing['CalciumActivity'].add(dt)
 
         # Save the NWB file
