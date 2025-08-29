@@ -47,19 +47,15 @@ def segment_from_centroids_using_watershed(centroids, video, compactness=0.5, dt
     
     # Stack results
     # segmented_video = dask_stack_volumes(_iter_segment_video(video, centroids))
-    segmented_video = dask_stack_volumes([da.from_delayed(_iter_segment_video(video, centroids, t, noise_threshold, dtype, compactness), shape=(X, Y, Z), dtype=dtype) for t in range(T)])
+    segmented_video = dask_stack_volumes([da.from_delayed(_iter_segment_video(video[t], centroids[t], t, noise_threshold, dtype, compactness), shape=(X, Y, Z), dtype=dtype) for t in range(T)])
 
     return segmented_video
 
 @delayed
-def _iter_segment_video(video, centroids, t, noise_threshold, dtype, compactness):
+def _iter_segment_video(video_frame, frame_centroids, t, noise_threshold, dtype, compactness):
     """Segment a single timepoint using watershed"""
 
-    T, X, Y, Z = video.shape
-
-    # Get video chunk
-    video_frame = video[t]
-    frame_centroids = centroids[t, ...]
+    X, Y, Z = video_frame.shape
     
     # Create markers as a full-size volume from centroids
     markers = np.zeros_like(video_frame, dtype=np.int32)
@@ -246,10 +242,10 @@ def convert_harvard_to_nwb(input_path,
         ))
 
         # Calculate segmentation using simple watershed
-        with ProgressBar():
-            # Regardless, load the image array into memory for segmentation
-            imvol_dask = imvol_dask.compute()
-        print("Image data loaded into memory for segmentation")
+        # with ProgressBar():
+        #     # Regardless, load the image array into memory for segmentation
+        #     imvol_dask = imvol_dask.compute()
+        # print("Image data loaded into memory for segmentation")
 
         seg_dask = segment_from_centroids_using_watershed(points, imvol_dask, DEBUG=DEBUG)
         if eager_segmentation_mode:
@@ -302,7 +298,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     # Start Dask dashboard for visualization
-    client = Client(processes=args.use_processes, n_workers= 4 if args.eager_segmentation_mode else 16)
+    client = Client(processes=args.use_processes, n_workers= 4)# if args.eager_segmentation_mode else 16)
     print(f"Dask dashboard available at: {client.dashboard_link}")
     print("If running on a remote computer, you may need to set up SSH port forwarding to access the dashboard in your browser.")
     print("For example, run the following command on your local machine:")
