@@ -221,8 +221,12 @@ def convert_harvard_to_nwb(input_path,
         # Add directly to the file to prevent hdmf.build.errors.OrphanContainerBuildError
         nwbfile.add_imaging_plane(CalcImagingVolume)
 
-        # imvol_dask = dask_stack_volumes(iter_frames(f, num_frames, frame_shape))
-        imvol_dask = dask_stack_volumes([da.from_delayed(load_frame(input_path, i), shape=frame_shape, dtype=np.uint16) for i in range(num_frames)] )
+        imvol_dask = dask_stack_volumes([da.from_delayed(load_frame(input_path, i), shape=frame_shape, dtype=np.uint16) for i in range(num_frames)])
+        imvol_dask = imvol_dask.compute()
+        # Check for nan and inf
+        if np.isnan(imvol_dask).any() or np.isinf(imvol_dask).any():
+            raise ValueError("Input data contains NaN or Inf values")
+
         chunk_video = (1,) + imvol_dask.shape[1:-1] + (1,)
         video_data = H5DataIO(
             data=CustomDataChunkIterator(array=imvol_dask, chunk_shape=chunk_video, display_progress=True),
@@ -249,8 +253,10 @@ def convert_harvard_to_nwb(input_path,
         seg_dask = segment_from_centroids_using_watershed(points, imvol_dask, DEBUG=DEBUG)
         if eager_segmentation_mode:
             print(f"Eager segmentation mode enabled; computing segmentation in memory; estimated size: {seg_dask.nbytes / (1024**3):.2f} GB")
-            with ProgressBar():
-                seg_dask = seg_dask.compute()
+            seg_dask = seg_dask.compute()
+            # Check for nan or inf
+            if np.isnan(seg_dask).any() or np.isinf(seg_dask).any():
+                raise ValueError("Segmentation data contains NaN or Inf values")
 
         chunk_seg = (1,) + frame_shape[:-1]  # chunk along time only
         print(f"Segmentations will be stored with chunk size {chunk_seg} and size {seg_dask.shape}")
