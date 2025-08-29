@@ -9,15 +9,15 @@
 #
 use_barlow_tracker: False  # Experimental, possibly much better tracker
 
-# Uncomment the relevant one
+# Uncomment the relevant one; each was trained on different data
 # Generally within /lisc/scratch/neurobiology/zimmer/wbfm/TrainedBarlow
-# Baseline model:
+# Baseline model: (2% agar)
 barlow_model_path: /lisc/scratch/neurobiology/zimmer/wbfm/TrainedBarlow/barlow_ZIM2165_Gcamp7b_worm1-2022_11_28_from_search/trial_13/resnet50.pth
-# Fungus model:
+# Fungus:
 #barlow_model_path: /lisc/scratch/neurobiology/zimmer/wbfm/TrainedBarlow/hyperparameter_search_fungus/resnet50.pth
-# Neuropal model:
+# Neuropal:
 #barlow_model_path: /lisc/scratch/neurobiology/zimmer/wbfm/TrainedBarlow/hyperparameter_search_neuropal/resnet50.pth
-# 1% agar model:
+# 1% agar:
 #barlow_model_path: /lisc/scratch/neurobiology/zimmer/wbfm/TrainedBarlow/hyperparameter_search_1percent/resnet50.pth
 
 

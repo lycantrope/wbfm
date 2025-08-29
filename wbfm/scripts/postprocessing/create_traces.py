@@ -18,7 +18,7 @@ SBATCH_TEMPLATES = {
 #SBATCH --job-name={job_name}
 #SBATCH --output=logs/{job_name}_%j.out
 #SBATCH --error=logs/{job_name}_%j.err
-#SBATCH --time=02:00:00
+#SBATCH --time=03:00:00
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=128G
 #SBATCH --gres=gpu:1
@@ -37,6 +37,7 @@ SBATCH_TEMPLATES = {
 """
 }
 
+
 def submit_job(script_path, dependency=None, debug=False):
     cmd = ["sbatch"]
     if dependency:
@@ -53,6 +54,7 @@ def submit_job(script_path, dependency=None, debug=False):
     job_id = stdout.strip().split()[-1]
     return job_id
 
+
 def write_and_submit_job(trial_name, step_name, command, dependency=None, debug=False):
     job_name = f"{step_name}_{trial_name}"
     script_path = Path(f"sbatch_scripts/{job_name}.sh")
@@ -67,6 +69,7 @@ def write_and_submit_job(trial_name, step_name, command, dependency=None, debug=
         print(f"[DEBUG] Script content:\n{script_content}")
 
     return submit_job(script_path, dependency=dependency, debug=debug)
+
 
 def submit_copy_job(trial_name, finished_path, new_location, make_project_script, debug=False):
     cmd = (
@@ -89,6 +92,7 @@ def submit_tracking_job(trial_name, new_location, barlow_model, track_script, de
     )
     return write_and_submit_job(trial_name, "track", cmd, dependency=dependency_jobid, debug=debug)
 
+
 def submit_trace_job(trial_name, new_location, dispatcher_script, dependency_jobid, debug=False):
     project_path = f"{new_location}{trial_name}"
     cmd = (
@@ -97,16 +101,19 @@ def submit_trace_job(trial_name, new_location, dispatcher_script, dependency_job
     )
     return write_and_submit_job(trial_name, "extract_traces", cmd, dependency=dependency_jobid, debug=debug)
 
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Run pipeline: copy → track → extract (all via SBATCH)")
     parser.add_argument("--wbfm-home", required=True, help="Path to the wbfm codebase root directory")
     parser.add_argument("--finished-path", required=True, help="Path to finished project")
     parser.add_argument("--new-location", required=True, help="Base path for new projects")
-    parser.add_argument("--models-dir", required=True, help="Folder containing trial subfolders with models")
+    parser.add_argument("--models-dir", required=True, help="Folder containing trial subfolders with models OR a single trial directory when --single-trial is used")
     parser.add_argument("--model-fname", default="resnet50.pth", help="Model filename inside each trial folder")
     parser.add_argument("--use_projection_space", required=True, help="Using projection space or final embedding space")
+    parser.add_argument("--single-trial", action="store_true", help="Treat --models-dir as a single trial directory instead of a folder of trials")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode (runs only one trial with verbose output)")
     return parser.parse_args()
+
 
 def main():
     args = parse_args()
@@ -119,13 +126,18 @@ def main():
     # NEW: Extract parent folder name (e.g. "2025_07_01")
     finished_path_parent = Path(args.finished_path).parent.name
 
-    trial_dirs = sorted([d for d in models_dir.iterdir() if d.is_dir() and re.match(r"trial_\d+", d.name)])
+    if args.single_trial:
+        # Just one trial, directly from models_dir
+        trial_dirs = [models_dir]
+    else:
+        # Collect all trial_* subdirectories
+        trial_dirs = sorted([d for d in models_dir.iterdir() if d.is_dir() and re.match(r"trial_\d+", d.name)])
 
     if not trial_dirs:
         print(f"No trial folders found in {args.models_dir} matching pattern 'trial_#'")
         return
 
-    if args.debug:
+    if args.debug and not args.single_trial:
         print(f"[DEBUG] Found {len(trial_dirs)} trial folders")
         print(f"[DEBUG] Will only process the first trial: {trial_dirs[0].name}")
         trial_dirs = trial_dirs[:1]

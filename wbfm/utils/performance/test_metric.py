@@ -47,12 +47,8 @@ def calculate_accuracy(df_gt: pd.DataFrame, df_pred: pd.DataFrame) -> dict:
     dict
         Dictionary with overall accuracy, and normalized error metrics.
     """
-    # Align both DataFrames
-    common_index = df_gt.index.intersection(df_pred.index)
-    common_columns = df_gt.columns.intersection(df_pred.columns)
-
-    df_gt = df_gt.loc[common_index, common_columns]
-    df_pred = df_pred.loc[common_index, common_columns]
+    # Align predicted DataFrame to all ground truth columns and index
+    df_pred = df_pred.reindex(index=df_gt.index, columns=df_gt.columns)
 
     # Validity checks
     gt_valid = ~df_gt.isna()
