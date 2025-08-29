@@ -39,7 +39,7 @@ def dask_stack_volumes(volume_iter):
     """Stack a generator of volumes into a dask array along time."""
     return da.stack(volume_iter, axis=0)
 
-def segment_from_centroids_using_watershed(centroids, video, compactness=0.5, dtype=np.uint16, noise_threshold=0, DEBUG=False):
+def segment_from_centroids_using_watershed(centroids, video, compactness=0.5, dtype=np.uint16, noise_threshold=3, DEBUG=False):
 
     if len(video.shape) == 5:
         video = video[..., 0]  # Just take the red channel
