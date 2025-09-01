@@ -1,4 +1,5 @@
 import argparse
+import os
 import subprocess
 from pathlib import Path
 import re
@@ -121,6 +122,9 @@ def main():
     make_project_script = Path(args.wbfm_home) / "scripts/postprocessing/make_project_like.py"
     track_script = Path(args.wbfm_home) / "scripts/pipeline_alternate/3-track_using_barlow.py"
     dispatcher_script = Path(args.wbfm_home) / "scripts/cluster/single_step_dispatcher.sbatch"
+    if not os.path.exists(dispatcher_script):
+        print(f"Warning: Dispatcher script not found: {dispatcher_script}, aborting")
+        return
     use_projection_space = args.use_projection_space
 
     # NEW: Extract parent folder name (e.g. "2025_07_01")
