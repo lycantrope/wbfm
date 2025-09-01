@@ -104,7 +104,7 @@ def submit_trace_job(trial_name, new_location, dispatcher_script, dependency_job
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run pipeline: copy → track → extract (all via SBATCH)")
-    parser.add_argument("--wbfm-home", required=False, help="Path to the wbfm codebase root directory", default="/lisc/data/scratch/neurobiology/zimmer/wbfm/code/wbfm")
+    parser.add_argument("--wbfm-home", required=False, help="Path to the wbfm codebase root directory", default="/lisc/data/scratch/neurobiology/zimmer/wbfm/code/wbfm/wbfm/")
     parser.add_argument("--finished-path", required=True, help="Path to finished project, usually an analyzed ground truth project")
     parser.add_argument("--new-location", required=True, help="Base path for new projects")
     parser.add_argument("--models-dir", required=True, help="Folder containing trial subfolders with models OR a single trial directory when --single-trial is used")
