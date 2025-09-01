@@ -122,9 +122,9 @@ def main():
     models_dir = Path(args.models_dir)
     make_project_script = Path(args.wbfm_home) / "scripts/postprocessing/make_project_like.py"
     track_script = Path(args.wbfm_home) / "scripts/pipeline_alternate/3-track_using_barlow.py"
-    dispatcher_script = Path(args.wbfm_home) / "scripts/make_final_traces.py"
-    if not os.path.exists(dispatcher_script):
-        print(f"Warning: Dispatcher script not found: {dispatcher_script}, aborting")
+    dispatcher_script = Path(args.wbfm_home) / "scripts/4-make_final_traces.py"
+    if not os.path.exists(dispatcher_script) or not os.path.exists(track_script) or not os.path.exists(make_project_script):
+        print(f"Warning: One or more scripts not found: {dispatcher_script}, {track_script}, {make_project_script}, aborting")
         return
     use_projection_space = args.use_projection_space
 
