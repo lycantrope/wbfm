@@ -1,6 +1,7 @@
 import os.path
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
+from re import Match
 
 import numpy as np
 import torch
@@ -8,6 +9,7 @@ from scipy.optimize import linear_sum_assignment
 from tqdm.auto import tqdm
 
 from wbfm.utils.neuron_matching.class_reference_frame import ReferenceFrame
+from wbfm.utils.neuron_matching.matches_class import MatchesWithConfidence
 from wbfm.utils.nn_utils.model_image_classifier import NeuronEmbeddingModel
 from wbfm.utils.nn_utils.superglue import SuperGlueModel, SuperGlueUnpacker
 from wbfm.utils.projects.finished_project_data import ProjectData, template_matches_to_dataframe
@@ -28,10 +30,10 @@ class FeatureSpaceTemplateMatcher(ABC):
     cdist_p: int = 2
 
     @abstractmethod
-    def match_target_frame(self, target_frame: ReferenceFrame):
+    def match_target_frame(self, target_frame: ReferenceFrame) -> MatchesWithConfidence:
         pass
 
-    def _match_using_linear_sum_assignment(self, query_embedding: torch.Tensor):
+    def _match_using_linear_sum_assignment(self, query_embedding: torch.Tensor) -> MatchesWithConfidence:
 
         distances = torch.cdist(self.embedding_template, query_embedding, p=self.cdist_p)
         conf_matrix = torch.nan_to_num(torch.softmax(self.confidence_gamma / distances, dim=0), nan=1.0)
@@ -42,7 +44,7 @@ class FeatureSpaceTemplateMatcher(ABC):
         conf = np.array([np.tanh(conf_matrix[i0, i1]) for i0, i1 in matches])
         matches_with_conf = [[m[0], m[1], c] for m, c in zip(matches, conf)]
 
-        return matches_with_conf
+        return MatchesWithConfidence.matches_from_array(matches_with_conf)
 
 class DirectFeatureSpaceTemplateMatcher(FeatureSpaceTemplateMatcher):
     """Direct matching in the feature space without re-embedding or other postprocessing"""
@@ -51,7 +53,7 @@ class DirectFeatureSpaceTemplateMatcher(FeatureSpaceTemplateMatcher):
     def __post_init__(self):
         self.embedding_template = torch.from_numpy(self.template_frame.all_features)
 
-    def match_target_frame(self, target_frame: ReferenceFrame):
+    def match_target_frame(self, target_frame: ReferenceFrame) -> MatchesWithConfidence:
         """
         Matches target frame (custom class) to the initialized template frame of this tracker
 
@@ -120,7 +122,7 @@ class ReembeddedFeatureSpaceTemplateMatcher(FeatureSpaceTemplateMatcher):
         # TODO: better naming?
         self.labels_template = list(range(features.shape[0]))
 
-    def match_target_frame(self, target_frame: ReferenceFrame):
+    def match_target_frame(self, target_frame: ReferenceFrame) -> MatchesWithConfidence:
         """
         Matches target frame (custom class) to the initialized template frame of this tracker
 

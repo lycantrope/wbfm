@@ -151,7 +151,7 @@ class MatchesWithConfidence:
     @staticmethod
     def matches_from_array(matches_with_conf, confidence=None, minimum_confidence=0.0, invalid_value=-1):
         """
-        Initialize object from a nx2 array that lists the matches
+        Initialize object from a nx2 or nx3 array that lists the matches. Confidence can be passed as an additional vector; otherwise nx3 shape is assumed with the 3rd column as the confidence
 
         Parameters
         ----------
