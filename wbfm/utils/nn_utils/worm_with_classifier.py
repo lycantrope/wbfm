@@ -5,7 +5,6 @@ from abc import ABC, abstractmethod
 import numpy as np
 import torch
 from scipy.optimize import linear_sum_assignment
-from sklearn.decomposition import TruncatedSVD
 from tqdm.auto import tqdm
 
 from wbfm.utils.neuron_matching.class_reference_frame import ReferenceFrame
