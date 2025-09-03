@@ -1,5 +1,6 @@
 import os.path
 from dataclasses import dataclass
+from abc import ABC, abstractmethod
 
 import numpy as np
 import torch
@@ -17,11 +18,67 @@ from wbfm.utils.general.hardcoded_paths import load_hardcoded_neural_network_pat
 # TODO: also save hyperparameters (doesn't work in jupyter notebooks)
 HPARAMS = dict(num_classes=127)
 
-
 @dataclass
-class WormWithNeuronClassifier:
-    """Tracks neurons using a feature-space embedding and pre-calculated Frame objects"""
+class FeatureSpaceNeuronTracker(ABC):
+    """Abstract class for tracking neurons via matching in some feature space based on a template"""
+
     template_frame: ReferenceFrame
+
+    # To be optimized
+    confidence_gamma: float = 100.0
+    cdist_p: int = 2
+
+    @abstractmethod
+    def match_target_frame(self, target_frame: ReferenceFrame):
+        pass
+
+    def _match_using_linear_sum_assignment(self, query_embedding: torch.Tensor):
+
+        distances = torch.cdist(self.embedding_template, query_embedding, p=self.cdist_p)
+        conf_matrix = torch.nan_to_num(torch.softmax(self.confidence_gamma / distances, dim=0), nan=1.0)
+
+        matches = linear_sum_assignment(conf_matrix, maximize=True)
+        matches = [[m0, m1] for (m0, m1) in zip(matches[0], matches[1])]
+        matches = np.array(matches)
+        conf = np.array([np.tanh(conf_matrix[i0, i1]) for i0, i1 in matches])
+        matches_with_conf = [[m[0], m[1], c] for m, c in zip(matches, conf)]
+
+        return matches_with_conf
+
+
+class DirectFeatureSpaceNeuronTracker(FeatureSpaceNeuronTracker):
+    """Direct matching in the feature space without re-embedding or other postprocessing"""
+    embedding_template: torch.tensor = None
+
+    def __post_init__(self):
+        self.embedding_template = torch.from_numpy(self.template_frame.all_features)
+
+    def match_target_frame(self, target_frame: ReferenceFrame):
+        """
+        Matches target frame (custom class) to the initialized template frame of this tracker
+
+        Parameters
+        ----------
+        target_frame
+
+        Returns
+        -------
+        Matches with confidence (n_matches x 3)
+
+        """
+
+        with torch.no_grad():
+            query_embedding = torch.from_numpy(target_frame.all_features)
+            matches_with_conf = self._match_using_linear_sum_assignment(query_embedding)
+        return matches_with_conf
+
+
+class ReembeddedFeatureSpaceNeuronTracker(FeatureSpaceNeuronTracker):
+    """
+    Tracks neurons using a feature-space embedding and pre-calculated Frame objects
+
+    The feature space in the Frame objects is re-embedded using a pretrained superglue network
+    """
 
     model_type: callable = NeuronEmbeddingModel
     model: NeuronEmbeddingModel = None
@@ -30,10 +87,6 @@ class WormWithNeuronClassifier:
 
     embedding_template: torch.tensor = None
     labels_template: list = None
-
-    # To be optimized
-    confidence_gamma: float = 100.0
-    cdist_p: int = 2
 
     def __post_init__(self):
         if self.path_to_model is None:
@@ -85,16 +138,7 @@ class WormWithNeuronClassifier:
 
         with torch.no_grad():
             query_embedding = self.embed_target_frame(target_frame)
-
-            distances = torch.cdist(self.embedding_template, query_embedding, p=self.cdist_p)
-            conf_matrix = torch.nan_to_num(torch.softmax(self.confidence_gamma / distances, dim=0), nan=1.0)
-
-            matches = linear_sum_assignment(conf_matrix, maximize=True)
-            matches = [[m0, m1] for (m0, m1) in zip(matches[0], matches[1])]
-            matches = np.array(matches)
-            conf = np.array([np.tanh(conf_matrix[i0, i1]) for i0, i1 in matches])
-            matches_with_conf = [[m[0], m[1], c] for m, c in zip(matches, conf)]
-
+            matches_with_conf = self._match_using_linear_sum_assignment(query_embedding)
         return matches_with_conf
 
     def embed_target_frame(self, target_frame):

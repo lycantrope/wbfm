@@ -15,7 +15,7 @@ from wbfm.utils.neuron_matching.utils_candidate_matches import rename_columns_us
     combine_dataframes_using_bipartite_matching
 from wbfm.utils.nn_utils.superglue import SuperGlueUnpacker
 from wbfm.utils.nn_utils.worm_with_classifier import _unpack_project_for_global_tracking, \
-    WormWithSuperGlueClassifier, track_using_template, WormWithNeuronClassifier
+    WormWithSuperGlueClassifier, track_using_template, ReembeddedFeatureSpaceNeuronTracker
 from wbfm.utils.external.random_templates import generate_random_valid_template_frames
 from wbfm.utils.projects.finished_project_data import ProjectData
 from wbfm.utils.projects.project_config_classes import ModularProjectConfig
@@ -192,18 +192,18 @@ def track_using_embedding_using_config(project_cfg, DEBUG):
 
     all_dfs = []
     if not use_multiple_templates:
-        tracker = WormWithNeuronClassifier(template_frame=all_frames[t_template])
+        tracker = ReembeddedFeatureSpaceNeuronTracker(template_frame=all_frames[t_template])
         df_final = track_using_template(all_frames, num_frames, project_data, tracker)
     else:
         all_templates = generate_random_valid_template_frames(all_frames, min_neurons_for_template,
                                                               num_frames, num_random_templates, t_template)
         # All subsequent dataframes will have their names mapped to this
         t = all_templates[0]
-        tracker = WormWithNeuronClassifier(template_frame=all_frames[t])
+        tracker = ReembeddedFeatureSpaceNeuronTracker(template_frame=all_frames[t])
         df_base = track_using_template(all_frames, num_frames, project_data, tracker)
         all_dfs = [df_base]
         for i, t in enumerate(tqdm(all_templates[1:])):
-            tracker = WormWithNeuronClassifier(template_frame=all_frames[t])
+            tracker = ReembeddedFeatureSpaceNeuronTracker(template_frame=all_frames[t])
             df = track_using_template(all_frames, num_frames, project_data, tracker)
             df, _, _, _ = rename_columns_using_matching(df_base, df)
             all_dfs.append(df)
