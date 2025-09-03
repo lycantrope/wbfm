@@ -701,7 +701,7 @@ class FramePair:
 
 
 def calc_FramePair_from_FeatureSpaceTemplates(template_base, template_target,
-                                              frame_pair_options: FramePairOptions) -> FramePair:
+                                              frame_pair_options: FramePairOptions = None) -> FramePair:
     """
     Calculates a FramePair from two FeatureSpaceTemplateMatchers. Note that this uses the matcher from the template_base object
 
@@ -716,6 +716,8 @@ def calc_FramePair_from_FeatureSpaceTemplates(template_base, template_target,
     -------
     FramePair
     """
+    if frame_pair_options is None:
+        frame_pair_options = FramePairOptions()
 
     # Get the matched frames from the templates
     matches_class = template_base.match_target_frame(template_target.template_frame)

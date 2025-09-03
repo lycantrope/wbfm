@@ -8,6 +8,7 @@ import torch
 from scipy.optimize import linear_sum_assignment
 from tqdm.auto import tqdm
 
+from wbfm.utils.neuron_matching.class_frame_pair import calc_FramePair_from_FeatureSpaceTemplates
 from wbfm.utils.neuron_matching.class_reference_frame import ReferenceFrame
 from wbfm.utils.neuron_matching.matches_class import MatchesWithConfidence
 from wbfm.utils.nn_utils.model_image_classifier import NeuronEmbeddingModel
@@ -157,11 +158,14 @@ class FullVideoTrackerWithTemplate:
     """
 
     t_template: int
-
     time_dict_of_matcher_classes: dict[int, FeatureSpaceTemplateMatcher]
 
-    def match_target_frame(self, t_target):
-        pass
+    def match_target_frame(self, t_target) -> MatchesWithConfidence:
+        template_matcher = self.time_dict_of_matcher_classes[self.t_template]
+        target_frame = self.time_dict_of_matcher_classes[t_target].template_frame
+
+        matches_with_conf = template_matcher.match_target_frame(target_frame)
+        return matches_with_conf
 
 
 @dataclass
