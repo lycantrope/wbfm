@@ -9,7 +9,7 @@ from wbfm.utils.projects.utils_consolidation import consolidate_tracklets, save_
 from wbfm.utils.projects.utils_project import safe_cd
 from wbfm.utils.general.high_performance_pandas import get_names_from_df
 from wbfm.utils.tracklets.tracklet_pipeline import _unpack_config_frame2frame_matches, _save_matches_and_frames, \
-    build_frame_pairs_using_superglue, _unpack_config_for_tracklets, postprocess_matches_to_tracklets, \
+    build_frame_pairs_using_superglue, unpack_config_for_tracklets, postprocess_matches_to_tracklets, \
     filter_tracklets_using_volume, save_all_tracklets
 from wbfm.utils.tracklets.training_data_from_tracklets import convert_training_dataframe_to_scalar_format
 
@@ -105,7 +105,7 @@ def postprocess_matches_to_tracklets_using_config(project_config: ModularProject
     """
     # Load data
     all_frame_dict, all_frame_pairs, z_threshold, min_confidence, segmentation_metadata, postprocessing_params = \
-        _unpack_config_for_tracklets(training_config, segmentation_config)
+        unpack_config_for_tracklets(training_config, segmentation_config)
 
     # Sanity check
     project_data = ProjectData.load_final_project_data_from_config(project_config)
