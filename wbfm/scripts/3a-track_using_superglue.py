@@ -42,4 +42,4 @@ def main(_config, _run):
     project_dir = _config['project_dir']
 
     with safe_cd(project_dir):
-        track_using_using_config(project_cfg, use_superglue_tracker=True, _config['DEBUG'])
+        track_using_using_config(project_cfg, use_superglue_tracker=True, DEBUG=_config['DEBUG'])
