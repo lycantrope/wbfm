@@ -570,7 +570,7 @@ class SuperGlueUnpackerWithTemplate:
         # Use my class to convert from a list of gt ids to a list of matches
         from wbfm.utils.neuron_matching.matches_class import MatchesWithConfidence
         match_obj = MatchesWithConfidence.matches_from_list_of_gt_ids(zxy_id0[:, 3], zxy_id1[:, 3])
-        all_matches = torch.tensor(match_obj.matches_without_conf)
+        all_matches = torch.tensor(match_obj.array_matches_without_conf)
 
         image3d_sz = (1, 1, 1)  # Leifer is already approximately z-scored?
         image5d_sz = torch.tensor((1, 1) + image3d_sz)

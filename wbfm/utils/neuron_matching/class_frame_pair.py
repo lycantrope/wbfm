@@ -724,7 +724,7 @@ def calc_FramePair_from_FeatureSpaceTemplates(template_base, template_target,
 
     # Create a FramePair from the matched frames
     frame_pair = FramePair(frame0=template_base.template_frame, frame1=template_target.template_frame, options=frame_pair_options)
-    frame_pair.final_matches = matches_class.matches_with_conf
+    frame_pair.final_matches = matches_class.array_matches_with_conf.tolist()
 
     # Add additional candidates; the class checks if they are used
     frame_pair.match_using_all_methods()
