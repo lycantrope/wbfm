@@ -159,7 +159,7 @@ class FullVideoTrackerWithTemplate:
     """
     t_template: int
     time_dict_of_matcher_classes: Dict[int, FeatureSpaceTemplateMatcher]
-    time_dict_of_matcher_classes: dict[int, FeatureSpaceTemplateMatcher]
+    time_dict_of_matcher_classes: Dict[int, FeatureSpaceTemplateMatcher]
 
     def match_target_frame(self, t_target) -> MatchesWithConfidence:
         template_matcher = self.time_dict_of_matcher_classes[self.t_template]
