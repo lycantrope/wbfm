@@ -264,8 +264,8 @@ class ReferenceFrame:
             for n in ids:
                 _embed_single_neuron(n)
         
-        # Convert to expected format (numpy array)
-        self.all_features = np.array(all_embeddings).squeeze()
+        # Convert to expected format (numpy array, neurons x features)
+        self.all_features = np.vstack(all_embeddings).squeeze()
         self.keypoints = list()
         
     def encode_neurons_using_2d_network(self, base_2d_encoder=None,
