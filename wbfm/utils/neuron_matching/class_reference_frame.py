@@ -94,7 +94,7 @@ class ReferenceFrame:
             raise NotImplementedError(f"Datatype should be uint8 or uint16, found {raw_dat.dtype} instead")
         return dat
 
-    def detect_or_import_neurons(self, detected_neurons: DetectedNeurons) -> list:
+    def import_neurons_from_metadata(self, detected_neurons: DetectedNeurons) -> list:
         """
 
         Parameters
@@ -106,20 +106,7 @@ class ReferenceFrame:
         neuron_locs - also saved as self.neuron_locs and self.keypoint_locs
 
         """
-
-        if detected_neurons is None:
-            raise DeprecationError("Detection of neurons within this class is deprecated")
-            # from wbfm.utils.neuron_matching.legacy_neuron_detection import detect_neurons_using_ICP
-            # neuron_locs, _, _, _ = detect_neurons_using_ICP(dat,
-            #                                                 num_slices=num_slices,
-            #                                                 alpha=1.0,
-            #                                                 min_detections=3,
-            #                                                 start_slice=start_slice,
-            #                                                 verbose=0)
-            # neuron_locs = np.array([n for n in neuron_locs])
-        else:
-            i = self.frame_ind
-            neuron_locs = detected_neurons.detect_neurons_from_file(i, numpy_not_list=False)
+        neuron_locs = detected_neurons.detect_neurons_from_file(self.frame_ind, numpy_not_list=False)
 
         if len(neuron_locs) == 0:
             raise NoNeuronsError("No neurons detected... check data settings")
@@ -127,7 +114,7 @@ class ReferenceFrame:
         self.neuron_locs = neuron_locs
         return neuron_locs
 
-    def copy_neurons_to_keypoints(self):
+    def copy_neurons_to_keypoints_locs(self):
         """ Explicitly a different method for backwards compatibility"""
         self.keypoint_locs = self.neuron_locs.copy()
 
@@ -254,9 +241,10 @@ class ReferenceFrame:
 
         return kp2n_map
 
-    def encode_neurons_using_3d_network(self, model, gpu, dataset, use_projection_space=True):
+    def encode_neurons_using_3d_network(self, model, gpu, dataset, use_projection_space=True) -> None:
         """
-        Build a feature vector for each neuron using a 3d CNN
+        Build a feature vector for each neuron using a 3d CNN. 
+        Note that this function doesn't know the neuron locations, but rather uses pre-built crops from the dataset class
 
         Designed to be used with a trained BarlowTrack network; see also embed_using_barlow in the BarlowTrack repo
 
@@ -277,7 +265,8 @@ class ReferenceFrame:
                 _embed_single_neuron(n)
         
         # Convert to expected format (numpy array)
-        return np.array(all_embeddings).squeeze()
+        self.all_features = np.array(all_embeddings).squeeze()
+        self.keypoints = list()
         
     def encode_neurons_using_2d_network(self, base_2d_encoder=None,
                                         use_keypoint_locs=True,
@@ -336,9 +325,9 @@ class ReferenceFrame:
         self.keypoints = all_keypoints
         # self.check_data_desyncing()
 
-    def build_trivial_keypoint_to_neuron_mapping(self):
+    def build_trivial_keypoint_to_neuron_mapping(self, ignore_keypoints=False):
         # This is now just a trivial mapping
-        self.check_data_desyncing()
+        self.check_data_desyncing(ignore_keypoints=ignore_keypoints)
         kp2n_map = {i: i for i in range(len(self.neuron_locs))}
         self.features_to_neurons = kp2n_map
 
@@ -360,14 +349,20 @@ class ReferenceFrame:
         k = get_keypoints_from_3dseg(self.keypoint_locs)
         self.keypoints = k
 
-    def check_data_desyncing(self):
-        if len(self.keypoint_locs) != len(self.keypoints):
-            logging.warning(f"{len(self.keypoint_locs)} != {len(self.keypoints)}")
-            raise DataSynchronizationError('keypoint_locs', 'keypoints', 'rebuild_keypoints')
+    def check_data_desyncing(self, ignore_keypoints=False):
+        if not ignore_keypoints:
+            if len(self.keypoint_locs) != len(self.keypoints):
+                logging.warning(f"{len(self.keypoint_locs)} != {len(self.keypoints)}")
+                raise DataSynchronizationError('keypoint_locs', 'keypoints', 'rebuild_keypoints')
 
-        if len(self.keypoints) != len(self.all_features):
-            logging.warning(f"{len(self.keypoints)} != {len(self.all_features)}")
-            raise DataSynchronizationError('all_features', 'keypoints')
+            if len(self.keypoints) != len(self.all_features):
+                logging.warning(f"{len(self.keypoints)} != {len(self.all_features)}")
+                raise DataSynchronizationError('all_features', 'keypoints')
+        
+        # Always check neuron_locs
+        if len(self.neuron_locs) != len(self.all_features):
+            logging.warning(f"{len(self.neuron_locs)} != {len(self.all_features)}")
+            raise DataSynchronizationError('neuron_locs', 'all_features')
 
     def __str__(self):
         return f"=======================================\n\
@@ -430,10 +425,12 @@ def build_reference_frame_encoding(metadata=None, all_detected_neurons: Detected
 
     # Build keypoints (in this case, neurons directly)
     try:
-        frame.detect_or_import_neurons(all_detected_neurons)
+        # Sets neuron_locs
+        frame.import_neurons_from_metadata(all_detected_neurons)
     except NoNeuronsError:
         return frame
-    frame.copy_neurons_to_keypoints()
+    # Sets keypoint_locs
+    frame.copy_neurons_to_keypoints_locs()
 
     # Calculate encodings
     if use_barlow_network:
@@ -442,6 +439,6 @@ def build_reference_frame_encoding(metadata=None, all_detected_neurons: Detected
         frame.encode_neurons_using_2d_network(**encoder_opt)
 
     # Set up mapping between neurons and keypoints
-    frame.build_trivial_keypoint_to_neuron_mapping()
+    frame.build_trivial_keypoint_to_neuron_mapping(ignore_keypoints=use_barlow_network)
 
     return frame
