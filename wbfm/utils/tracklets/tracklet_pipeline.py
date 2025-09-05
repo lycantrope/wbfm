@@ -63,8 +63,8 @@ def match_all_adjacent_frames_using_config(project_config: ModularProjectConfig,
     if frame_pair_options.use_superglue:
         all_frame_pairs = build_frame_pairs_using_superglue(all_frame_dict, frame_pair_options, project_data)
     else:
-        all_frame_dict = {k: DirectFeatureSpaceTemplateMatcher(template_frame=v) for k, v in all_frame_dict.items()}
-        all_frame_pairs = match_all_adjacent_frames(all_frame_dict, start_volume, end_volume, frame_pair_options, use_tracker_class=True)
+        all_matcher_dict = {k: DirectFeatureSpaceTemplateMatcher(template_frame=v) for k, v in all_frame_dict.items()}
+        all_frame_pairs = match_all_adjacent_frames(all_matcher_dict, start_volume, end_volume, frame_pair_options, use_tracker_class=True)
 
     with safe_cd(project_config.project_dir):
         _save_matches_and_frames(all_frame_dict, all_frame_pairs, training_config)
