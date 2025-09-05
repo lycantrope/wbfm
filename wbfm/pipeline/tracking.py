@@ -66,7 +66,7 @@ def track_using_using_config(project_cfg, use_superglue_tracker=False, DEBUG=Fal
         for i, t in enumerate(tqdm(all_templates[1:])):
             tracker = _init_tracker(t=t)
             df = track_using_template(all_frames, num_frames, project_data, tracker)
-            df_name_aligned, _, _, _ = rename_columns_using_matching(df_base, df, try_to_fix_inf=True, column='raw_segmentation_id')
+            df_name_aligned, _, _, _ = rename_columns_using_matching(df_base, df, try_to_fix_inf=True)#, column='raw_segmentation_id')
             all_dfs_names_aligned.append(df_name_aligned)
             all_dfs_raw.append(df)
 
