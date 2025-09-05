@@ -254,7 +254,7 @@ class ReferenceFrame:
 
         return kp2n_map
 
-    def encode_neurons_using_3d_network(self, model, gpu, dataset, use_projection_space=True, network_path=None):
+    def encode_neurons_using_3d_network(self, model, gpu, dataset, use_projection_space=True):
         """
         Build a feature vector for each neuron using a 3d CNN
 

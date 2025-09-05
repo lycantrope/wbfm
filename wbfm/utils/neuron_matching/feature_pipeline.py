@@ -44,6 +44,7 @@ def calculate_frame_objects_full_video(video_data, external_detections, frame_ra
         # Load the network
         from barlow_track.utils.barlow import load_barlow_model
         network_path = encoder_opt.get('network_path', None)
+        del encoder_opt['network_path']
         gpu, model, args = load_barlow_model(network_path)
         encoder_opt['gpu'] = gpu
         encoder_opt['model'] = model
