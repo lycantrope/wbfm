@@ -92,6 +92,10 @@ class FramePairOptions:
         pairwise_matches_params = training_config.config['pairwise_matching_params'].copy()
         pairwise_matches_params = FramePairOptions(**pairwise_matches_params)
 
+        # Check that the network used to create the embeddings is consistent
+        if training_config.config['tracker_params']['use_barlow_network']:
+            assert not pairwise_matches_params['use_superglue'], "Cannot set use_superglue=True if the embeddings were created using barlow network"
+
         physical_unit_conversion = PhysicalUnitConversion.load_from_config(cfg)
         pairwise_matches_params.physical_unit_conversion = physical_unit_conversion
 
