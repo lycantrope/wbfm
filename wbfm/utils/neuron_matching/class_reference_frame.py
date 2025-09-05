@@ -254,11 +254,13 @@ class ReferenceFrame:
 
         return kp2n_map
 
-    def encode_neurons_using_3d_network(self, model, gpu, dataset, use_projection_space=True):
+    def encode_neurons_using_3d_network(self, model, gpu, dataset, use_projection_space=True, network_path=None):
         """
         Build a feature vector for each neuron using a 3d CNN
 
         Designed to be used with a trained BarlowTrack network; see also embed_using_barlow in the BarlowTrack repo
+
+        Note: network_path is needed as an arg for compatibility with the yaml file
         """
         batch, ids = dataset[self.frame_ind]
         batch = batch.to(gpu)
