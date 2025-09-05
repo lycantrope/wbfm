@@ -9,6 +9,7 @@ import torch
 from scipy.optimize import linear_sum_assignment
 from tqdm.auto import tqdm
 
+from wbfm.utils.external.custom_errors import NoMatchesError
 from wbfm.utils.neuron_matching.class_frame_pair import num_possible_matches_between_two_frames
 from wbfm.utils.neuron_matching.class_reference_frame import ReferenceFrame
 from wbfm.utils.neuron_matching.matches_class import MatchesWithConfidence
