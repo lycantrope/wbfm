@@ -74,7 +74,10 @@ def track_using_using_config(project_cfg, use_superglue_tracker=False, DEBUG=Fal
         df_final = combine_dataframes_using_bipartite_matching(all_dfs_names_aligned)
 
     # Save
-    out_fname = '3-tracking/postprocessing/df_tracks_postprocessed.h5'
+    if use_superglue_tracker:
+        out_fname = '3-tracking/postprocessing/df_tracks_superglue.h5'
+    else:
+        out_fname = '3-tracking/postprocessing/df_tracks_postprocessed.h5'
     out_fname = tracking_cfg.save_data_in_local_project(df_final, out_fname, also_save_csv=True,
                                                         make_sequential_filename=True)
     out_fname = tracking_cfg.unresolve_absolute_path(out_fname)
