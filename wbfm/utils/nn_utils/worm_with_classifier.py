@@ -57,6 +57,8 @@ class FeatureSpaceTemplateMatcher(ABC):
 
         return MatchesWithConfidence.matches_from_array(matches_with_conf)
 
+
+@dataclass
 class DirectFeatureSpaceTemplateMatcher(FeatureSpaceTemplateMatcher):
     """Direct matching in the feature space without re-embedding or other postprocessing"""
     embedding_template: torch.tensor = None
@@ -86,6 +88,7 @@ class DirectFeatureSpaceTemplateMatcher(FeatureSpaceTemplateMatcher):
         return matches_with_conf
 
 
+@dataclass
 class ReembeddedFeatureSpaceTemplateMatcher(FeatureSpaceTemplateMatcher):
     """
     Tracks neurons using a feature-space embedding and pre-calculated Frame objects
