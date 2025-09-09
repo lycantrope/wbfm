@@ -1028,6 +1028,19 @@ def _update_config_value(file_key, cfg_to_update, old_name0, new_name0=None, new
     return cfg_to_update
 
 
+def make_project_name_like(project_path: str, target_directory: str, target_suffix: str = None, 
+                           new_project_name: str = None, verbose=1) -> Path:
+    project_dir = Path(project_path).parent
+    if new_project_name is None:
+        new_project_name = project_dir.name
+    if target_suffix is not None:
+        new_project_name = f"{new_project_name}{target_suffix}"
+    target_project_name = Path(target_directory).joinpath(new_project_name)
+    if verbose >= 1:
+        print(f"Copying project {project_dir}")
+    return target_project_name, project_dir
+
+
 def make_project_like(project_path: str, target_directory: str,
                       steps_to_keep: list = None,
                       target_suffix: str = None,
@@ -1054,16 +1067,12 @@ def make_project_like(project_path: str, target_directory: str,
     assert project_path.endswith('.yaml'), f"Must pass a valid config file: {project_path}"
     assert os.path.exists(target_directory), f"Must pass a folder that exists: {target_directory}"
 
-    project_dir = Path(project_path).parent
-    if new_project_name is None:
-        new_project_name = project_dir.name
-    if target_suffix is not None:
-        new_project_name = f"{new_project_name}{target_suffix}"
-    target_project_name = Path(target_directory).joinpath(new_project_name)
+    target_project_name, project_dir = make_project_name_like(project_path, target_directory,
+                                                              target_suffix=target_suffix,
+                                                              new_project_name=new_project_name,
+                                                              verbose=verbose)
     if os.path.exists(target_project_name):
         raise FileExistsError(f"There is already a project at: {target_project_name}")
-    if verbose >= 1:
-        print(f"Copying project {project_dir}")
 
     # Get a list of all files that should be present, relative to the project directory
     src = get_location_of_new_project_defaults()
