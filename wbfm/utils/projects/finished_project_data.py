@@ -2446,7 +2446,7 @@ def template_matches_to_dataframe(project_data: ProjectData,
     for i_template, data in neuron_arrays.items():
         for i_col, coord_name in enumerate(coords):
             # NOTE: these neuron names are final for all subsequent steps
-            k = (int2name_neuron(i_template + 1), coord_name)
+            k = (int2name_neuron(int(i_template + 1)), coord_name)
             new_dict[k] = data[:, i_col]
 
     df = pd.DataFrame(new_dict)
