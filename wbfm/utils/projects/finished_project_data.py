@@ -2430,7 +2430,7 @@ def template_matches_to_dataframe(project_data: ProjectData,
         pts = project_data.get_centroids_as_numpy(i_frame)
         # For each match, save location
         for m in these_matches:
-            this_unscaled_pt = pts[m[1]]
+            this_unscaled_pt = pts[int(m[1])]
             this_template_idx = m[0]
 
             # These columns must match the order of 'coords' above
@@ -2439,7 +2439,7 @@ def template_matches_to_dataframe(project_data: ProjectData,
             else:
                 neuron_arrays[this_template_idx][i_frame, :3] = this_unscaled_pt
                 neuron_arrays[this_template_idx][i_frame, 3] = m[2]  # Match confidence
-                neuron_arrays[this_template_idx][i_frame, 4] = m[1]  # Match index
+                neuron_arrays[this_template_idx][i_frame, 4] = int(m[1])  # Match index
 
     # Convert to pandas multiindexing formatting
     new_dict = {}
