@@ -50,7 +50,4 @@ find "$TARGET_PARENT_FOLDER" -type d -name "snakemake" | while read -r dir; do
         echo "[!] Sibling config $sibling not found; skipping."
         continue
     fi
-
-    # Run your updater
-    python3 update_yaml.py "$target"
 done
