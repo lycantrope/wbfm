@@ -50,6 +50,7 @@ def update_config_file(config_path, networks_parent_dir, dry_run=False):
     sweep_type, trial_name, lab_type = extract_sweep_and_trial(config_path)
     model_path = f"{networks_parent_dir}/{sweep_type}_{lab_type}/{trial_name}/resnet50.pth"
     if not os.path.exists(model_path):
+        print("="*20)
         logging.warning(f"Model not found at {model_path}; skipping {config_path}. Setting barlow_model_path to null (analysis should fail later)")
         model_path = None
 
@@ -65,6 +66,7 @@ def update_config_file(config_path, networks_parent_dir, dry_run=False):
             with open(config_path, 'w') as f:
                 yaml.dump(data, f)
         else:
+            print()
             print(f"[DRY RUN] Would update '{config_path}' with:")
             print(f"  use_barlow_tracker: True")
             print(f"  barlow_model_path: {model_path}")
