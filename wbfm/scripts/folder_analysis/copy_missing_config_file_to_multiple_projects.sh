@@ -36,7 +36,7 @@ find "$TARGET_PARENT_FOLDER" -type d -name "snakemake" | while read -r dir; do
 
     # If this sibling is found, then copy the new config file to the same directory
     if [ -f "$sibling" ]; then
-        if [ -f "$target" ] && [ "$OVERWRITE" == "FALSE" ]; then
+        if [ -f "$target" ] && [ "$OVERWRITE" == "False" ]; then
             echo "[*] Skipping $target (already exists)"
             continue
         fi
