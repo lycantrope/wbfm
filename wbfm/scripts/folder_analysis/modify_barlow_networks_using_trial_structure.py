@@ -74,11 +74,11 @@ def update_config_file(config_path, networks_parent_dir, dry_run=False):
         print(f"[!] Error updating '{config_path}': {e}")
 
 
-def find_and_update_configs(root_dir, dry_run=False):
+def find_and_update_configs(root_dir, networks_parent_dir, dry_run=False):
     for dirpath, _, filenames in os.walk(root_dir):
         if 'snakemake_config.yaml' in filenames:
             full_path = os.path.join(dirpath, 'snakemake_config.yaml')
-            update_config_file(full_path, dry_run=dry_run)
+            update_config_file(full_path, networks_parent_dir, dry_run=dry_run)
 
 
 if __name__ == "__main__":
