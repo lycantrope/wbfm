@@ -10,6 +10,7 @@ function usage {
   echo "Usage: $0 [-t folder_of_projects] [-n] [-d] [-s rule] [-h] [-R restart_rule]"
   echo "  -t: folder of projects (required)"
   echo "  -n: dry run of this script (default: false)"
+  echo "  -c: run commands locally (default: false, i.e. use sbatch)"
   echo "  -d: dry run of snakemake (default: false)"
   echo "  -s: snakemake rule to run (default: traces_and_behavior; other options: traces, behavior)"
   echo "  -R: snakemake rule to restart from (default: None)"
@@ -21,24 +22,28 @@ RULE="traces_and_behavior"
 is_dry_run=""
 RUNME_ARGS=""
 RESTART_RULE=""
+is_snakemake_dry_run=""
 
 # Get all user flags
-while getopts t:n:s:d:R:ch flag
+while getopts t:s:R:ncdh flag
 do
     case "${flag}" in
         t) folder_of_projects=${OPTARG};;
         n) is_dry_run="True";;
-        d) is_snakemake_dry_run=${OPTARG};;
+        d) is_snakemake_dry_run="True";;
         c) RUNME_ARGS="-c";;
         s) RULE=${OPTARG};;
         R) RESTART_RULE=${OPTARG};;
         h) usage;;
-        *) raise error "Unknown flag"
+        *) echo "Unknown flag"; usage; exit 1;;
     esac
 done
 
 
-loop_through_and_analyze_folder(folder_of_projects, recursion_level=0) {
+loop_through_and_analyze_folder() {
+    folder_of_projects=$1
+    recursion_level=$2
+
     # Shared setup for each command
     conda_setup_cmd="conda activate /lisc/scratch/neurobiology/zimmer/.conda/envs/wbfm/"
 
@@ -52,7 +57,7 @@ loop_through_and_analyze_folder(folder_of_projects, recursion_level=0) {
             # Check to make sure the project has a project_config.yaml file, i.e. is a real project
             # Order files first, then directories
             project_found="False"
-            for f_config in $(find "$f" -mindepth 1 -maxdepth 1 -type f; find "$f" -mindepth 1 -maxdepth 1 -type d); do
+            while IFS= read -r -d '' f_config; do
                 if [ -f "$f_config" ] && [ "${f_config##*/}" = "project_config.yaml" ]; then
                     project_found="True"
                     if [ "$is_dry_run" ]; then
@@ -95,7 +100,7 @@ loop_through_and_analyze_folder(folder_of_projects, recursion_level=0) {
                         fi
                     fi
                 fi
-            done
+            done < <(find "$f" -mindepth 1 -maxdepth 1 -type f -print0)
             # If no project found, go one level deeper via recursion
             if [ "$project_found" = "False" ] && [ $recursion_level -lt 2 ]; then
                 echo "No project_config.yaml found in $f, analyzing subfolders"
