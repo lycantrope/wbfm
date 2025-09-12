@@ -11,6 +11,7 @@ __default__:
     output: log_snakemake_step-%j.out
     mail_type: FAIL,TIME_LIMIT
     gres: # Should be empty
+    no-requeue: "" # Should be empty
 
 # Note: may need to push over to himem if the cluster is busy
 preprocessing:
