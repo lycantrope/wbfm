@@ -42,6 +42,7 @@ done
 
 loop_through_and_analyze_folder() {
     folder_of_projects=$1
+    local recursion_level
     recursion_level=$2
 
     if [ $recursion_level -eq 0 ]; then
@@ -62,7 +63,6 @@ loop_through_and_analyze_folder() {
             echo "${indent}Analyzing folder: $f (recursion level: $recursion_level)"
 
             # Check to make sure the project has a project_config.yaml file, i.e. is a real project
-            # Order files first, then directories
             project_found="False"
             while IFS= read -r -d '' f_config; do
                 if [ -f "$f_config" ] && [ "${f_config##*/}" = "project_config.yaml" ]; then
