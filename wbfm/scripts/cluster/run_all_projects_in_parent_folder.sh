@@ -50,7 +50,7 @@ loop_through_and_analyze_folder() {
     if [ $recursion_level -eq 0 ]; then
         echo "Checking top level folder: $folder_of_projects"
     fi
-    
+
     # Loop through the parent folder, then try to get the config file within each of these parent folders
     for f in "$folder_of_projects"/*; do
         if [ -d "$f" ] && [ ! -L "$f" ]; then
@@ -103,6 +103,7 @@ loop_through_and_analyze_folder() {
                                 --mail-type=FAIL,TIME_LIMIT,END \
                                 --wrap="$full_cmd" \
                                 --job-name="$JOB_NAME"
+                            sleep .25  # Avoid overloading the scheduler
                         fi
                     fi
                 fi
