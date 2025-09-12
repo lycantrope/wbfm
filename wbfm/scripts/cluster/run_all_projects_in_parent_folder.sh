@@ -39,6 +39,8 @@ do
     esac
 done
 
+# Shared setup for each command
+conda_setup_cmd="conda activate /lisc/scratch/neurobiology/zimmer/.conda/envs/wbfm/"
 
 loop_through_and_analyze_folder() {
     folder_of_projects=$1
@@ -46,12 +48,9 @@ loop_through_and_analyze_folder() {
     recursion_level=$2
 
     if [ $recursion_level -eq 0 ]; then
-        echo "Checking top level folder: $f"
+        echo "Checking top level folder: $folder_of_projects"
     fi
-
-    # Shared setup for each command
-    conda_setup_cmd="conda activate /lisc/scratch/neurobiology/zimmer/.conda/envs/wbfm/"
-
+    
     # Loop through the parent folder, then try to get the config file within each of these parent folders
     for f in "$folder_of_projects"/*; do
         if [ -d "$f" ] && [ ! -L "$f" ]; then
