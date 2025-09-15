@@ -35,7 +35,7 @@ else
 fi
 
 # Define relevant subfolders
-SUBFOLDERS=("freely_moving" "immobilized" "barlow" "nwb", "immobilized_barlow_tracklets")
+SUBFOLDERS=("freely_moving" "immobilized" "barlow" "nwb" "immobilized_barlow_tracklets")
 
 # For each subfolder, remove any project folders
 for f in "${SUBFOLDERS[@]}"; do
