@@ -215,7 +215,7 @@ class SuperGlueFullVideoTrackerWithTemplate:
             self.model = SuperGlueModel.load_from_checkpoint(checkpoint_path=self.path_to_model)
         self.model.eval()
 
-    def match_target_frame(self, target_frame: ReferenceFrame):
+    def match_target_frame(self, target_frame: ReferenceFrame) -> MatchesWithConfidence:
 
         with torch.no_grad():
             data, is_valid_frame = self.superglue_unpacker.convert_single_frame_to_superglue_format(target_frame,
@@ -225,7 +225,9 @@ class SuperGlueFullVideoTrackerWithTemplate:
                 matches_with_conf = self.model.superglue.match_and_output_list(data)
             else:
                 matches_with_conf = []
-        return matches_with_conf
+        # Cast as class (the proper return type)
+        matches_class = MatchesWithConfidence.matches_from_array(matches_with_conf)
+        return matches_class
 
     def embed_target_frame(self, target_frame: ReferenceFrame):
         """For debugging: no matching, just returns the features"""
