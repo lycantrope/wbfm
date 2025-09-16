@@ -138,7 +138,7 @@ rule unpacking:
 rule build_segmentation_metadata:
     input:
         cfg=project_cfg_fname,
-        masks=directory(os.path.join(project_dir, "1-segmentation/masks.zarr"))
+        masks=os.path.join(project_dir, "1-segmentation/masks.zarr")
     output:
         os.path.join(project_dir, "1-segmentation/metadata.pickle")
     run:
