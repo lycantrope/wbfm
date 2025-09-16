@@ -35,7 +35,7 @@ do
 done
 
 # Package options
-SBATCH_OPT="sbatch -t {cluster.time} --cpus-per-task {cluster.cpus_per_task} --mem {cluster.mem} --output {cluster.output} --gres {cluster.gres} --job-name={rule}"
+SBATCH_OPT="sbatch -t {cluster.time} --cpus-per-task {cluster.cpus_per_task} --mem {cluster.mem} --output {cluster.output} --gres {cluster.gres} --job-name={rule} --constraint={cluster.constraint}"
 SNAKEMAKE_OPT="-s pipeline.smk --latency-wait 60 --cores 56 --retries 2"
 if [ -n "$RESTART_RULE" ]; then
     SNAKEMAKE_OPT="$SNAKEMAKE_OPT -R $RESTART_RULE"
