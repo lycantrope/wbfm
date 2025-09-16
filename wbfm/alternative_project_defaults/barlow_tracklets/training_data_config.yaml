@@ -30,7 +30,7 @@ pairwise_matching_params:
   z_threshold: 2.5
   matching_method: bipartite  # Or unanimous
   preprocess_using_global_rotation: false
-  use_superglue: true # As a postprocessing of the feature space matching
+  use_superglue: false # As a postprocessing of the feature space matching
 
 # Parameters for postprocessing tracklets, i.e. splitting them
 postprocessing_params:
