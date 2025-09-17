@@ -159,8 +159,12 @@ rule segmentation:
 # No input version, e.g. from nwb or remote preprocessing
 rule alt_segmentation:
     input: # No input
-    output: segmentation.output
-    run: segmentation.run
+    output:
+        metadata=os.path.join(project_dir, "1-segmentation/metadata.pickle"),
+        masks=directory(os.path.join(project_dir, "1-segmentation/masks.zarr"))
+    threads: 56
+    run:
+        _run_helper("1-segment_video", str(input.cfg))
     
 
 #
@@ -207,8 +211,11 @@ rule postprocess_matches_to_tracklets:
 # No input version, e.g. from nwb or remote segmentation
 rule alt_build_frame_objects:
     input: # No input
-    output: alt_build_frame_objects.output
-    run: alt_build_frame_objects.run
+    output:
+        os.path.join(project_dir, "2-training_data/raw/frame_dat.pickle")
+    threads: 56
+    run:
+        _run_helper("2a-build_frame_objects", str(input.cfg))
 
 #
 # Tracking
@@ -252,8 +259,12 @@ rule barlow_tracking:
 # No input version, e.g. from nwb or remote segmentation
 rule alt_barlow_tracking:
     input: # No input
-    output: barlow_tracking.output
-    run: barlow_tracking.run
+    output:
+        tracks_global=os.path.join(project_dir, "3-tracking/barlow_tracker/df_barlow_tracks.h5"),
+    threads: 48
+    run:
+        _run_helper("pipeline_alternate.3-track_using_barlow", str(input.cfg),
+            model_fname=config["barlow_model_path"])
 
 #
 # Traces
