@@ -90,6 +90,7 @@ def _choose_tracker():
 
 # For skipping some steps, use ruleorder
 if project_data.check_segmentation():
+    print("Detected completed segmentation; allowing rules that skip segmentation")
     ruleorder: alt_build_frame_objects > build_frame_objects
     ruleorder: alt_tracking > tracking
 else:
@@ -97,6 +98,7 @@ else:
     ruleorder: tracking > alt_tracking
 
 if project_data.check_preprocessing_data():
+    print("Detected completed preprocessing; allowing rules that skip preprocessing")
     ruleorder: alt_segmentation > segmentation
 else:
     ruleorder: segmentation > alt_segmentation
