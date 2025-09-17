@@ -1845,7 +1845,7 @@ class ProjectData:
         """
         # Manual annotations take precedence by default
         if not self.project_config.has_valid_self_path:
-            self.logger.warning("No project config found; cannot load manual annotations")
+            self.logger.debug("No project config found; cannot load manual annotations")
             return None
         excel_fname = self.get_default_manual_annotation_fname()
         try:
