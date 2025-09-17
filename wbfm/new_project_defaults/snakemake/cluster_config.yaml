@@ -34,6 +34,9 @@ match_frame_pairs:
 build_frame_objects:
     time: 0-12:00:00
     cpus_per_task: 20
+    mem: 128G
+    gres: gpu:1
+    constraint: "l40s|a30|t4|v100|l4"
 
 postprocess_matches_to_tracklets:
     cpus_per_task: 1

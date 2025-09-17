@@ -23,13 +23,15 @@ segmentation:
     cpus_per_task: 40
 
 match_frame_pairs:
-    gpus_per_node: 1
     mem: 128G
     gres: gpu:1
     constraint: "l40s|a30|t4|v100|l4"
 
 build_frame_objects:
     cpus_per_task: 20
+    mem: 128G
+    gres: gpu:1
+    constraint: "l40s|a30|t4|v100|l4"
 
 postprocess_matches_to_tracklets:
     cpus_per_task: 1
