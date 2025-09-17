@@ -74,10 +74,7 @@ def track_using_using_config(project_cfg, use_superglue_tracker=False, DEBUG=Fal
         df_final = combine_dataframes_using_bipartite_matching(all_dfs_names_aligned)
 
     # Save
-    if use_superglue_tracker:
-        out_fname = '3-tracking/postprocessing/df_tracks_superglue.h5'
-    else:
-        out_fname = '3-tracking/postprocessing/df_tracks_postprocessed.h5'
+    out_fname = '3-tracking/postprocessing/df_tracks_postprocessed.h5'
     out_fname = tracking_cfg.save_data_in_local_project(df_final, out_fname, also_save_csv=True,
                                                         make_sequential_filename=True)
     out_fname = tracking_cfg.unresolve_absolute_path(out_fname)
@@ -201,50 +198,6 @@ def _map_only_named(x):
         return new_name
     else:
         return ''
-
-
-def track_using_embedding_using_config(project_cfg, DEBUG):
-    all_frames, num_frames, num_random_templates, project_data, t_template, tracking_cfg, use_multiple_templates = _unpack_project_for_global_tracking(
-        DEBUG, project_cfg)
-
-    min_neurons_for_template = 100
-
-    all_dfs = []
-    if not use_multiple_templates:
-        tracker = DirectFeatureSpaceTemplateMatcher(template_frame=all_frames[t_template])
-        df_final = track_using_template(all_frames, num_frames, project_data, tracker)
-    else:
-        all_templates = generate_random_valid_template_frames(all_frames, min_neurons_for_template,
-                                                              num_frames, num_random_templates, t_template)
-        # All subsequent dataframes will have their names mapped to this
-        t = all_templates[0]
-        tracker = DirectFeatureSpaceTemplateMatcher(template_frame=all_frames[t])
-        df_base = track_using_template(all_frames, num_frames, project_data, tracker)
-        all_dfs = [df_base]
-        for i, t in enumerate(tqdm(all_templates[1:])):
-            tracker = DirectFeatureSpaceTemplateMatcher(template_frame=all_frames[t])
-            df = track_using_template(all_frames, num_frames, project_data, tracker)
-            df, _, _, _ = rename_columns_using_matching(df_base, df)
-            all_dfs.append(df)
-
-        tracking_cfg.config['t_templates'] = all_templates
-        df_final = combine_dataframes_using_bipartite_matching(all_dfs)
-
-    # Save
-    out_fname = '3-tracking/postprocessing/df_tracks_embedding.h5'
-    out_fname = tracking_cfg.save_data_in_local_project(df_final, out_fname, also_save_csv=True,
-                                                        make_sequential_filename=True)
-    out_fname = tracking_cfg.unresolve_absolute_path(out_fname)
-    tracking_cfg.config['leifer_params']['output_df_fname'] = str(out_fname)
-
-    # Also save the intermediate dataframes
-    if use_multiple_templates:
-        out_fname = '3-tracking/postprocessing/df_tracks_embedding_template-0.h5'
-        for df in all_dfs:
-            out_fname = tracking_cfg.save_data_in_local_project(df, out_fname, also_save_csv=False,
-                                                                make_sequential_filename=True)
-
-    tracking_cfg.update_self_on_disk()
 
 
 def match_tracks_and_tracklets_using_config(project_config: ModularProjectConfig, to_save=True, verbose=0,
