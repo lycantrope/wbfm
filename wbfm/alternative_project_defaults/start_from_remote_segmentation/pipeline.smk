@@ -161,7 +161,7 @@ rule tracking:
         tracks_global=os.path.join(project_dir, "3-tracking/postprocessing/df_tracks_superglue.h5"),
     threads: 48
     run:
-        _run_helper("3a-track_using_superglue", str(input.cfg))
+        _run_helper("3a-track_time_independent", str(input.cfg))
 
 rule combine_tracking_and_tracklets:
     input:
