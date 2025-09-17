@@ -92,10 +92,10 @@ def _choose_tracker():
 if project_data.check_segmentation():
     print("Detected completed segmentation; allowing rules that skip segmentation")
     ruleorder: alt_build_frame_objects > build_frame_objects
-    ruleorder: alt_barlow_tracking > tracking
+    ruleorder: alt_barlow_tracking > barlow_tracking
 else:
     ruleorder: build_frame_objects > alt_build_frame_objects
-    ruleorder: tracking > alt_barlow_tracking
+    ruleorder: barlow_tracking > alt_barlow_tracking
 
 if project_data.check_preprocessed_data():
     print("Detected completed preprocessing; allowing rules that skip preprocessing")
