@@ -273,7 +273,6 @@ rule extract_full_traces:
     input:
         cfg=project_cfg_fname,
         tracks_combined=_choose_tracker(),
-        metadata=os.path.join(project_dir, "1-segmentation/metadata.pickle"),
     output:
         os.path.join(project_dir, "4-traces/all_matches.pickle"),
         os.path.join(project_dir, "4-traces/red_traces.h5"),
