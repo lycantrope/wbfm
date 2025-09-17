@@ -46,7 +46,7 @@ class ConfigFileWithProjectContext:
 
     def __post_init__(self):
         if self._self_path is None:
-            logging.warning("self_path is None; some functionality will not work")
+            logging.debug("self_path is None; some functionality will not work")
             self._config = dict()
         else:
             if Path(self._self_path).is_dir():
@@ -367,8 +367,8 @@ class ModularProjectConfig(ConfigFileWithProjectContext):
         except FileNotFoundError:
             # Allow a hardcoded default... fragile, but necessary for projects with deleted raw data
             cfg = default_raw_data_config()
-            self._logger.warning(f"Could not find file {fname}; "
-                                 f"Using hardcoded default raw data config: {cfg}")
+            self._logger.info(f"Could not find file {fname}; "
+                              f"Using hardcoded default raw data config: {cfg}")
             return SubfolderConfigFile(_self_path=None, _config=cfg, project_dir=self.project_dir)
 
     def get_nwb_config(self, make_subfolder=True) -> SubfolderConfigFile:
