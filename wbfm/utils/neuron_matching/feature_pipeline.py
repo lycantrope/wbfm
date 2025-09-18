@@ -18,9 +18,9 @@ from wbfm.utils.projects.project_config_classes import ModularProjectConfig
 
 def match_all_adjacent_frames(all_frame_dict, start_volume, end_volume, frame_pair_options: FramePairOptions, use_tracker_class=False):
     all_frame_pairs = {}
-    frame_range = range(start_volume + 1, end_volume)
+    frame_range = range(start_volume, end_volume - 1)
     for i_frame in tqdm(frame_range):
-        key = (i_frame - 1, i_frame)
+        key = (i_frame, i_frame + 1)
         frame0, frame1 = all_frame_dict[key[0]], all_frame_dict[key[1]]
         if use_tracker_class:
             this_pair = calc_FramePair_from_FeatureSpaceTemplates(frame0, frame1, frame_pair_options=frame_pair_options)

@@ -368,11 +368,10 @@ class ReferenceFrame:
         return f"=======================================\n\
 ReferenceFrame:\n\
 Frame index: {self.frame_ind} \n\
-Number of neurons: {len(self.neuron_locs)} \n\
-Number of keypoints: {len(self.keypoint_locs)} \n"
+Number of neurons: {self.num_neurons} \n"
 
     def __repr__(self):
-        return f"ReferenceFrame with {len(self.neuron_locs)} neurons \n"
+        return f"ReferenceFrame with {self.num_neurons} neurons \n"
 
 
 ##
