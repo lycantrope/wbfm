@@ -1035,15 +1035,13 @@ def _update_config_value(file_key, cfg_to_update, old_name0, new_name0=None, new
 
 def make_project_name_like(project_path: str, target_directory: str, target_suffix: str = None, 
                            new_project_name: str = None, verbose=1) -> Path:
-    project_dir = Path(project_path).parent
+    old_project_dir = Path(project_path).parent
     if new_project_name is None:
-        new_project_name = project_dir.name
+        new_project_name = old_project_dir.name
     if target_suffix is not None:
         new_project_name = f"{new_project_name}{target_suffix}"
     target_project_name = Path(target_directory).joinpath(new_project_name)
-    if verbose >= 1:
-        print(f"Copying project {project_dir}")
-    return target_project_name, project_dir
+    return target_project_name, old_project_dir
 
 
 def make_project_like(project_path: str, target_directory: str,
@@ -1073,37 +1071,39 @@ def make_project_like(project_path: str, target_directory: str,
     assert project_path.endswith('.yaml'), f"Must pass a valid config file: {project_path}"
     assert os.path.exists(target_directory), f"Must pass a folder that exists: {target_directory}"
 
-    target_project_name, project_dir = make_project_name_like(project_path, target_directory,
+    target_project_name, old_project_dir = make_project_name_like(project_path, target_directory,
                                                               target_suffix=target_suffix,
                                                               new_project_name=new_project_name,
                                                               verbose=verbose)
     if os.path.exists(target_project_name):
         raise FileExistsError(f"There is already a project at: {target_project_name}")
+    if verbose >= 1:
+        print(f"Copying project in directory {old_project_dir} with new name {target_project_name}")
 
     # Get a list of all files that should be present, relative to the project directory
     src = get_location_of_new_project_defaults()
-    initial_fnames = list(Path(src).rglob('**/*'))
-    if len(initial_fnames) == 0:
-        print("Found no initial files, probably running this from the wrong directory")
+    template_fnames = list(Path(src).rglob('**/*'))
+    if len(template_fnames) == 0:
+        print(f"Found no template files, something went wrong with trying to find project template. Searched here: {src}")
         raise FileNotFoundError
 
     # Convert them to relative
-    initial_fnames = {str(fname.relative_to(src)) for fname in initial_fnames}
+    template_fnames = {str(fname.relative_to(src)) for fname in template_fnames}
     if verbose >= 3:
-        print(f"Found initial files: {initial_fnames}")
+        print(f"Found template files: {template_fnames}")
 
     # Also get the filenames of the target folder
-    target_fnames = list(Path(project_dir).rglob('**/*'))
+    old_project_fnames = list(Path(old_project_dir).rglob('**/*'))
     if verbose >= 3:
-        print(f"Found target files: {target_fnames}")
+        print(f"Found files in the old project (to copy): {old_project_fnames}")
 
     # Check each initial project fname, and if it is in the initial set, copy it
-    for fname in target_fnames:
+    for fname in old_project_fnames:
         if fname.is_dir():
             continue
-        rel_fname = fname.relative_to(project_dir)
+        rel_fname = fname.relative_to(old_project_dir)
         new_fname = target_project_name.joinpath(rel_fname)
-        if str(rel_fname) in initial_fnames:
+        if str(rel_fname) in template_fnames:
             os.makedirs(new_fname.parent, exist_ok=True)
             shutil.copy(fname, new_fname)
 
