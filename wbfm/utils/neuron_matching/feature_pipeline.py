@@ -31,7 +31,7 @@ def match_all_adjacent_frames(all_frame_dict, start_volume, end_volume, frame_pa
 
 
 def calculate_frame_objects_full_video(video_data, frame_range, video_fname,
-                                       z_depth_neuron_encoding, encoder_opt=None, max_workers=8,
+                                       z_depth_neuron_encoding=None, encoder_opt=None, max_workers=8,
                                        preprocessing_settings=None, 
                                        use_barlow_network=False, project_data=None,
                                        logger=None, **kwargs):
