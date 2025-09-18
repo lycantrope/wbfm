@@ -76,7 +76,7 @@ def main():
                 tracker_params=dict(
                     use_barlow_network=True,
                     encoder_opt=dict(
-                        network_path=barlow_model_path,
+                        network_path=str(barlow_model_path),
                         use_projection_space=use_projection_space
                     )
                 ),
@@ -86,7 +86,7 @@ def main():
             tracklet_config.update_self_on_disk()
         else:
             snakemake_config = project_config.get_snakemake_config()
-            config_updates = dict(use_barlow_tracker=True, barlow_model_path=barlow_model_path)
+            config_updates = dict(use_barlow_tracker=True, barlow_model_path=str(barlow_model_path))
             snakemake_config.config.update(config_updates)
             snakemake_config.update_self_on_disk()
 
