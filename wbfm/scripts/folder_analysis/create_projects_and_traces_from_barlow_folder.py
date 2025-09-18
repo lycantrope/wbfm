@@ -3,6 +3,7 @@ import os
 import subprocess
 from pathlib import Path
 import re
+from pydantic.utils import deep_update
 
 from wbfm.utils.general.utils_filenames import get_location_of_installed_project
 from wbfm.utils.projects.finished_project_data import ProjectData
@@ -82,7 +83,7 @@ def main():
                 ),
                 pairwise_matching_params=dict(add_affine_to_candidates=False)
             )
-            tracklet_config.config.update(config_updates)
+            deep_update(tracklet_config.config, config_updates)
             tracklet_config.update_self_on_disk()
         else:
             snakemake_config = project_config.get_snakemake_config()
