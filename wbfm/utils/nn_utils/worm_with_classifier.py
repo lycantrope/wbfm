@@ -306,7 +306,7 @@ def _unpack_project_for_global_tracking(DEBUG, project_cfg):
     t_template = tracking_cfg.config['final_3d_tracks']['template_time_point']
     use_multiple_templates = tracking_cfg.config['leifer_params']['use_multiple_templates']
     num_random_templates = tracking_cfg.config['leifer_params']['num_random_templates']
-    num_frames = project_data.project_config.get_num_frames_robust()
+    num_frames = project_data.num_frames
     if DEBUG:
         num_frames = 3
     all_frames = project_data.raw_frames
