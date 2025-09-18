@@ -14,8 +14,8 @@ from wbfm.utils.neuron_matching.long_range_matching import _unpack_for_track_tra
 from wbfm.utils.neuron_matching.utils_candidate_matches import rename_columns_using_matching, \
     combine_dataframes_using_bipartite_matching
 from wbfm.utils.nn_utils.superglue import SuperGlueUnpackerWithTemplate
-from wbfm.utils.nn_utils.worm_with_classifier import DirectFeatureSpaceTemplateMatcher, FullVideoTrackerWithTemplate, _unpack_project_for_global_tracking, \
-    SuperGlueFullVideoTrackerWithTemplate, track_using_template, ReembeddedFeatureSpaceTemplateMatcher
+from wbfm.utils.nn_utils.worm_with_classifier import DirectFeatureSpaceTemplateMatcher, _unpack_project_for_global_tracking, \
+    SuperGlueFullVideoTrackerWithTemplate, track_using_template
 from wbfm.utils.external.random_templates import generate_random_valid_template_frames
 from wbfm.utils.projects.finished_project_data import ProjectData
 from wbfm.utils.projects.project_config_classes import ModularProjectConfig
