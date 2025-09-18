@@ -95,12 +95,12 @@ def main():
     #########################################################################################
     # Note that the script is already recursive
 
-    CMD = os.path.join(wbfm_home, 'wbfm', 'scripts', 'cluster', 'run_all_projects_in_parent_folder.sh')
-    CMD = f"bash {CMD} -t {args.new_location} -s traces"
+    CMD = [os.path.join(wbfm_home, 'wbfm', 'scripts', 'cluster', 'run_all_projects_in_parent_folder.sh')]
+    CMD.extend(["-t", args.new_location,  "-s" , "traces"])
     if args.debug:
         # Dryrun
-        CMD += " -n"
-    subprocess.call(CMD, shell=True)
+        CMD.append("-n")
+    subprocess.call(CMD)
 
     print(f"All jobs for {len(trial_dirs)} trials in folder {args.new_location} submitted successfully.")
 
