@@ -93,12 +93,14 @@ class DirectFeatureSpaceTemplateMatcher(FeatureSpaceTemplateMatcher):
 
         """
         if not self.check_target_frame_can_be_matched(target_frame):
-            raise NoMatchesError("Target frame cannot be matched")
-
-        with torch.no_grad():
-            query_embedding = torch.from_numpy(target_frame.all_features)
-            matches_with_conf = self._match_using_linear_sum_assignment(query_embedding)
-        return matches_with_conf
+            matches_with_conf = []
+            # Cast as class (the proper return type)
+            matches_class = MatchesWithConfidence.matches_from_array(matches_with_conf)
+        else:
+            with torch.no_grad():
+                query_embedding = torch.from_numpy(target_frame.all_features)
+                matches_class = self._match_using_linear_sum_assignment(query_embedding)
+        return matches_class
 
 
 @dataclass
