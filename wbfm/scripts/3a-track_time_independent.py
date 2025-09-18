@@ -43,6 +43,6 @@ def main(_config, _run):
 
     with safe_cd(project_dir):
         tracklet_cfg = project_cfg.get_training_config()
-        use_barlow_network = tracklet_cfg.config.tracker_params.get('use_barlow_network', False)
+        use_barlow_network = tracklet_cfg.config['tracker_params'].get('use_barlow_network', False)
 
         track_using_using_config(project_cfg, use_superglue_tracker=not use_barlow_network, DEBUG=_config['DEBUG'])
