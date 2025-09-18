@@ -22,8 +22,18 @@ from wbfm.utils.general.hardcoded_paths import load_hardcoded_neural_network_pat
 # TODO: also save hyperparameters (doesn't work in jupyter notebooks)
 HPARAMS = dict(num_classes=127)
 
+
 @dataclass
-class FeatureSpaceTemplateMatcher(ABC):
+class FrameMatcher(ABC):
+    """Abstract class for tracking neurons via matching using my ReferenceFrame class"""
+
+    @abstractmethod
+    def match_target_frame(self, target_frame: ReferenceFrame) -> MatchesWithConfidence:
+        pass
+
+
+@dataclass
+class FeatureSpaceTemplateMatcher(FrameMatcher):
     """Abstract class for tracking neurons via matching in some feature space based on a template"""
 
     template_frame: ReferenceFrame
@@ -31,10 +41,6 @@ class FeatureSpaceTemplateMatcher(ABC):
     # To be optimized
     confidence_gamma: float = 100.0
     cdist_p: int = 2
-
-    @abstractmethod
-    def match_target_frame(self, target_frame: ReferenceFrame) -> MatchesWithConfidence:
-        pass
 
     def check_target_frame_can_be_matched(self, target_frame: ReferenceFrame) -> bool:
         # See FramePair.check_both_frames_valid
@@ -169,24 +175,7 @@ class ReembeddedFeatureSpaceTemplateMatcher(FeatureSpaceTemplateMatcher):
 
 
 @dataclass
-class FullVideoTrackerWithTemplate:
-    """
-    Simpler reimplementation of FullVideoNeuronTrackerSuperglue that uses the FeatureSpaceTemplateMatcher class instead of a direct neural network
-    """
-    t_template: int
-    time_dict_of_matcher_classes: Dict[int, FeatureSpaceTemplateMatcher]
-    time_dict_of_matcher_classes: Dict[int, FeatureSpaceTemplateMatcher]
-
-    def match_target_frame(self, t_target) -> MatchesWithConfidence:
-        template_matcher = self.time_dict_of_matcher_classes[self.t_template]
-        target_frame = self.time_dict_of_matcher_classes[t_target].template_frame
-
-        matches_with_conf = template_matcher.match_target_frame(target_frame)
-        return matches_with_conf
-
-
-@dataclass
-class SuperGlueFullVideoTrackerWithTemplate:
+class SuperGlueFullVideoTrackerWithTemplate(FrameMatcher):
     """
     Tracks neurons using a superglue network and pre-calculated Frame objects
 
@@ -284,7 +273,7 @@ class SuperGlueFullVideoTrackerWithTemplate:
         return f"Worm Tracker based on superglue network"
 
 
-def track_using_template(all_frames, num_frames, project_data, tracker: SuperGlueFullVideoTrackerWithTemplate):
+def track_using_template(all_frames, num_frames, project_data, tracker: FrameMatcher):
     """
     Tracks all the frames in all_frames using the tracker class.
 

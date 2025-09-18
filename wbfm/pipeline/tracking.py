@@ -41,10 +41,8 @@ def track_using_using_config(project_cfg, use_superglue_tracker=False, DEBUG=Fal
             return tracker
         
     else:
-
-        all_match_classes = {k: DirectFeatureSpaceTemplateMatcher(template_frame=v) for k, v in all_frames.items()}
         def _init_tracker(t):
-            return FullVideoTrackerWithTemplate(t_template=t, time_dict_of_matcher_classes=all_match_classes)
+            return DirectFeatureSpaceTemplateMatcher(template_frame=t)
         
         tracker = _init_tracker(t=t_template)
 
