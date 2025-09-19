@@ -110,7 +110,7 @@ class PostprocessedFeatureSpaceTemplateMatcher(FeatureSpaceTemplateMatcher):
     See also DirectFeatureSpaceTemplateMatcher
     """
     
-    postprocesser: callable  # Should have .transform() method
+    postprocesser: callable = None  # Should have .transform() method
 
     @property
     def embedding_template(self) -> torch.tensor:
