@@ -375,13 +375,13 @@ def test_baseline_and_new_matcher_on_embeddings(project_data, t0=0, t1=1):
 
     """
     from wbfm.utils.nn_utils.superglue import SuperGlue
-    from wbfm.utils.nn_utils.worm_with_classifier import ReembeddedFeatureSpaceTemplateMatcher
+    from wbfm.utils.nn_utils.worm_with_classifier import SuperglueFeatureSpaceTemplateMatcher
     f0 = project_data.raw_frames[t0]
     f1 = project_data.raw_frames[t1]
     df_gt = project_data.get_final_tracks_only_finished_neurons()[0]
 
     # Unpack
-    tracker = ReembeddedFeatureSpaceTemplateMatcher(f0)
+    tracker = SuperglueFeatureSpaceTemplateMatcher(f0)
 
     kpts0 = torch.tensor(f0.neuron_locs).float()
     kpts1 = torch.tensor(f1.neuron_locs).float()

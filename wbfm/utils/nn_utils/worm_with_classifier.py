@@ -78,7 +78,6 @@ class DirectFeatureSpaceTemplateMatcher(FeatureSpaceTemplateMatcher):
                           {self.template_frame}")
             raise e
 
-
     def match_target_frame(self, target_frame: ReferenceFrame) -> MatchesWithConfidence:
         """
         Matches target frame (custom class) to the initialized template frame of this tracker
@@ -104,7 +103,50 @@ class DirectFeatureSpaceTemplateMatcher(FeatureSpaceTemplateMatcher):
 
 
 @dataclass
-class ReembeddedFeatureSpaceTemplateMatcher(FeatureSpaceTemplateMatcher):
+class PostprocessedFeatureSpaceTemplateMatcher(FeatureSpaceTemplateMatcher):
+    """
+    Matching in the feature space, but applying a general preprocessing before (e.g. UMAP embedding)
+
+    See also DirectFeatureSpaceTemplateMatcher
+    """
+    
+    postprocesser: callable  # Should have .transform() method
+
+    @property
+    def embedding_template(self) -> torch.tensor:
+        try:
+            return torch.from_numpy(self.postprocesser(self.template_frame.all_features))
+        except TypeError as e:
+            logging.error(f"Invalid frame encountered, validity should be checked before matching is attempted: \
+                          {self.template_frame}")
+            raise e
+
+    def match_target_frame(self, target_frame: ReferenceFrame) -> MatchesWithConfidence:
+        """
+        Matches target frame (custom class) to the initialized template frame of this tracker
+
+        Parameters
+        ----------
+        target_frame
+
+        Returns
+        -------
+        Matches with confidence (n_matches x 3)
+
+        """
+        if not self.check_target_frame_can_be_matched(target_frame):
+            matches_with_conf = []
+            # Cast as class (the proper return type)
+            matches_class = MatchesWithConfidence.matches_from_array(matches_with_conf)
+        else:
+            with torch.no_grad():
+                query_embedding = torch.from_numpy(self.postprocesser(target_frame.all_features))
+                matches_class = self._match_using_linear_sum_assignment(query_embedding)
+        return matches_class
+
+
+@dataclass
+class SuperglueFeatureSpaceTemplateMatcher(FeatureSpaceTemplateMatcher):
     """
     Tracks neurons using a feature-space embedding and pre-calculated Frame objects
 

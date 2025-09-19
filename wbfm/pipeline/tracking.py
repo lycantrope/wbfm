@@ -14,7 +14,7 @@ from wbfm.utils.neuron_matching.long_range_matching import _unpack_for_track_tra
 from wbfm.utils.neuron_matching.utils_candidate_matches import rename_columns_using_matching, \
     combine_dataframes_using_bipartite_matching
 from wbfm.utils.nn_utils.superglue import SuperGlueUnpackerWithTemplate
-from wbfm.utils.nn_utils.worm_with_classifier import DirectFeatureSpaceTemplateMatcher, _unpack_project_for_global_tracking, \
+from wbfm.utils.nn_utils.worm_with_classifier import DirectFeatureSpaceTemplateMatcher, PostprocessedFeatureSpaceTemplateMatcher, _unpack_project_for_global_tracking, \
     SuperGlueFullVideoTrackerWithTemplate, track_using_template
 from wbfm.utils.external.random_templates import generate_random_valid_template_frames
 from wbfm.utils.projects.finished_project_data import ProjectData
@@ -29,6 +29,9 @@ def track_using_using_config(project_cfg, use_superglue_tracker=False, DEBUG=Fal
     all_frames, num_frames, num_random_templates, project_data, t_template, tracking_cfg, use_multiple_templates = _unpack_project_for_global_tracking(
         DEBUG, project_cfg)
 
+    # Do this by default for barlow embeddings
+    use_umap_preprocessing = not use_superglue_tracker
+
     # Create the helper classes that actually do the matching
     if use_superglue_tracker:
         superglue_unpacker = SuperGlueUnpackerWithTemplate(project_data=project_data, t_template=t_template)
@@ -40,11 +43,28 @@ def track_using_using_config(project_cfg, use_superglue_tracker=False, DEBUG=Fal
             tracker = SuperGlueFullVideoTrackerWithTemplate(superglue_unpacker=superglue_unpacker,  model=model)
             return tracker
         
-    else:
+    elif use_umap_preprocessing:
+        project_cfg.logger.info("Pretraining UMAP for global space embedding")
+        from umap import UMAP
+        X_all_neurons = []
+
+        for f in all_frames.values():
+            if f.all_features is not None:
+                X_all_neurons.append(f.all_features)
+            
+        X_all_neurons = np.vstack(X_all_neurons)
+        opt_umap = dict(n_components=10, n_neighbors=10, min_dist=0)
+        umap = UMAP(**opt_umap)
+        umap.fit(X_all_neurons)
         def _init_tracker(t):
-            return DirectFeatureSpaceTemplateMatcher(template_frame=all_frames[t], confidence_gamma=100)
+            return PostprocessedFeatureSpaceTemplateMatcher(template_frame=all_frames[t], confidence_gamma=100, postprocesser=umap)
         
         tracker = _init_tracker(t=t_template)
+    
+    else:
+        # Simplest; direct matching in the feature space
+        def _init_tracker(t):
+            return DirectFeatureSpaceTemplateMatcher(template_frame=all_frames[t], confidence_gamma=100)
 
     min_neurons_for_template = 50
     all_dfs_raw = []
