@@ -3,9 +3,9 @@ import os
 import subprocess
 from pathlib import Path
 import re
-from pydantic.utils import deep_update
 from ruamel.yaml import YAML
 
+from wbfm.utils.external.utils_yaml import recursive_dict_update
 from wbfm.utils.general.utils_filenames import get_location_of_installed_project
 from wbfm.utils.projects.finished_project_data import ProjectData
 from wbfm.utils.projects.project_config_classes import make_project_like
@@ -93,8 +93,9 @@ def main():
                 ),
                 pairwise_matching_params=dict(add_affine_to_candidates=False)
             )
-            deep_update(tracklet_config.config, config_updates)
+            recursive_dict_update(tracklet_config.config, config_updates)
             tracklet_config.update_self_on_disk()
+            print("New config settings: ", tracklet_config)
         else:
             snakemake_config = project_config.get_snakemake_config()
             config_updates = dict(use_barlow_tracker=True, barlow_model_path=str(barlow_model_path))

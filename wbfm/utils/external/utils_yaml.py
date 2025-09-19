@@ -46,3 +46,15 @@ def load_config(config_fname: typing.Union[str, pathlib.Path]) -> dict:
         cfg = YAML().load(f)
 
     return cfg
+
+
+def recursive_dict_update(base_dict, update_dict):
+    """
+    Recursively update dict `base_dict` with dict `update_dict`.
+    """
+    for key, value in update_dict.items():
+        if isinstance(value, dict) and isinstance(base_dict.get(key), dict):
+            recursive_dict_update(base_dict[key], value)
+        else:
+            base_dict[key] = value
+    return base_dict
