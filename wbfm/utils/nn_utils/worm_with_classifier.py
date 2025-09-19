@@ -54,7 +54,7 @@ class FeatureSpaceTemplateMatcher(FrameMatcher):
     def _match_using_linear_sum_assignment(self, query_embedding: torch.Tensor) -> MatchesWithConfidence:
 
         distances = torch.cdist(self.embedding_template, query_embedding, p=self.cdist_p)
-        conf_matrix = torch.nan_to_num(torch.softmax(self.confidence_gamma / distances, dim=0), nan=1.0)
+        conf_matrix = torch.nan_to_num(torch.softmax(self.confidence_gamma / distances, dim=0), nan=0.0)
 
         matches = linear_sum_assignment(conf_matrix, maximize=True)
         matches = [[m0, m1] for (m0, m1) in zip(matches[0], matches[1])]
