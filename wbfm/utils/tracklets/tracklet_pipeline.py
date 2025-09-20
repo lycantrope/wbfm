@@ -178,7 +178,7 @@ def _unpack_config_frame2frame_matches(project_data, training_config, DEBUG):
 
     video_fname = preprocessing_class.get_path_to_preprocessed_data(red_not_green=True)
 
-    track_on_green_channel = project_config.config['dataset_params']['segment_and_track_on_green_channel']
+    track_on_green_channel = project_config.config['dataset_params'].get('segment_and_track_on_green_channel', False)
 
     return video_fname, tracker_params, frame_pair_options, track_on_green_channel
 
