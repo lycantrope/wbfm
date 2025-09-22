@@ -252,7 +252,12 @@ def add_metadata_to_df_raw_ind(df_raw_ind, segmentation_metadata: DetectedNeuron
     top_level_names = df_raw_ind.columns.get_level_values(0).unique()
     for neuron_name in tqdm(top_level_names):
         this_col = df_raw_ind.loc[:, (neuron_name, 'raw_neuron_ind_in_list')]
-        for t in tqdm(range(len(this_col)), leave=False):
+        try:
+            likelihood = df_raw_ind.loc[:, (neuron_name, 'likelihood')]
+        except KeyError:
+            likelihood = np.ones(t)
+
+        for t in range(len(this_col)):
             raw_ind = cast_int_or_nan(this_col.iat[t])
             if np.isnan(raw_ind):
                 continue
@@ -264,7 +269,7 @@ def add_metadata_to_df_raw_ind(df_raw_ind, segmentation_metadata: DetectedNeuron
                 if raise_error:
                     raise e
                 continue
-            row_data, column_names = segmentation_metadata.get_all_metadata_for_single_time(mask_ind, t)
+            row_data, column_names = segmentation_metadata.get_all_metadata_for_single_time(mask_ind, t, likelihood=likelihood[t])
             for val, col_name in zip(row_data, column_names):
                 key = (neuron_name, col_name)
                 new_df_values[key][t] = val
