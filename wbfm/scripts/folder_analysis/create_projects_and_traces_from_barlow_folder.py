@@ -105,7 +105,7 @@ def main():
             if args.use_label_propagation:
                 # Also update the tracking config file
                 tracking_config = project_config.get_tracking_config()
-                config_updates = dict(barlow_tracker=dict(tracking_mode='global'))
+                config_updates = dict(barlow_tracker=dict(tracking_mode='label_propagation'))
                 recursive_dict_update(tracking_config.config, config_updates)
                 tracking_config.update_self_on_disk()
 
