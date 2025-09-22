@@ -91,3 +91,7 @@ opt_umap:
   n_components: 10
   n_neighbors: 10
   min_dist: 0.0
+
+barlow_tracker:
+  tracking_mode: global
+  
