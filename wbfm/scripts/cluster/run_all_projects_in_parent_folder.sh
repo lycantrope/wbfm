@@ -99,11 +99,11 @@ loop_through_and_analyze_folder() {
                             full_cmd="$conda_setup_cmd; bash $snakemake_cmd"
                             sbatch --time 5-00:00:00 \
                                 --cpus-per-task 1 \
-                                --mem 1G \
+                                --mem 8G \
                                 --mail-type=FAIL,TIME_LIMIT,END \
                                 --wrap="$full_cmd" \
                                 --job-name="$JOB_NAME"
-                            sleep .25  # Avoid overloading the scheduler
+                            sleep .1  # Avoid overloading the scheduler
                         fi
                     fi
                 fi
