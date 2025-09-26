@@ -169,7 +169,7 @@ class ProjectData:
     def neuropal_manager(self):
         try:
             neuropal_config = self.project_config.get_neuropal_config()
-        except FileNotFoundError:
+        except (FileNotFoundError, IncompleteConfigFileError):
             return NeuropalManager(None)
         return NeuropalManager(neuropal_config)
 
