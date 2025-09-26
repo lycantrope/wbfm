@@ -831,6 +831,8 @@ class ProjectData:
                 preprocessing_settings._raw_red_data = da.from_array(dat, chunks=chunks)[..., 0].transpose((0, 3, 1, 2))
                 preprocessing_settings._raw_green_data = da.from_array(dat, chunks=chunks)[..., 1].transpose(
                     (0, 3, 1, 2))
+                if dat.shape[-1] >= 2:
+                    obj.logger.warning(f"Expected 1 or 2 channels in CalciumImageSeries, found {dat.shape[-1]}; ignoring extras")
             elif dat.shape[-1] == 1:
                 obj.red_data = da.from_array(dat, chunks=chunks)[..., 0].transpose((0, 3, 1, 2))
                 obj.green_data = da.from_array(dat, chunks=chunks)[..., 0].transpose((0, 3, 1, 2))
@@ -839,8 +841,6 @@ class ProjectData:
                 preprocessing_settings._raw_green_data = da.from_array(dat, chunks=chunks)[..., 0].transpose((0, 3, 1, 2))
                 obj.logger.debug("WARNING, only one video channel found; setting both channels as this data")
                 obj.logger.debug(f"Loaded data from NWB file: {obj.red_data.shape}")
-            else:
-                raise ValueError(f"Expected 1 or 2 channels in CalciumImageSeries, found {dat.shape[-1]}")
 
         if 'RawCalciumImageSeries' in nwb_obj.acquisition:
             # Load this, but it's not actually part of the main ProjectData class
