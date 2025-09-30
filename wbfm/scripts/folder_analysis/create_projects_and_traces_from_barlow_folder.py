@@ -25,23 +25,23 @@ def parse_args():
     return parser.parse_args()
 
 
-def main():
-    args = parse_args()
+def main(new_location, models_dir, finished_path=None, model_fname='resnet50.pth', use_projection_space=False,
+         single_trial=False, use_tracklets=False, use_label_propagation=False, DEBUG=False):
 
     wbfm_home = get_location_of_installed_project()
-    models_dir = Path(args.models_dir)
-    use_projection_space = args.use_projection_space
+    models_dir = Path(models_dir)
+    use_projection_space = use_projection_space
 
-    if args.finished_path is None:
+    if finished_path is None:
         # Then load it from the train_config.yaml file in the main model_dir
         fname = os.path.join(models_dir, 'train_config.yaml')
         with open(fname, 'r') as f:
             training_config = YAML().load(f)
         project_path = training_config['project_path']
     else:
-        project_path = args.finished_path
+        project_path = finished_path
 
-    if args.single_trial:
+    if single_trial:
         # Just one trial, directly from models_dir
         trial_dirs = [models_dir]
     else:
@@ -49,10 +49,10 @@ def main():
         trial_dirs = sorted([d for d in models_dir.iterdir() if d.is_dir() and re.match(r"trial_\d+", d.name)])
 
     if not trial_dirs:
-        print(f"No trial folders found in {args.models_dir} matching pattern 'trial_#'")
+        print(f"No trial folders found in {models_dir} matching pattern 'trial_#'")
         return
 
-    if args.debug and not args.single_trial:
+    if DEBUG and not single_trial:
         print(f"[DEBUG] Found {len(trial_dirs)} trial folders")
         print(f"[DEBUG] Will only process the first trial: {trial_dirs[0].name}")
         trial_dirs = trial_dirs[:1]
@@ -63,17 +63,17 @@ def main():
     for trial_dir in trial_dirs:
         trial_name = trial_dir.name
         # try:
-        barlow_model_path = Path(trial_dir) / Path(args.model_fname)
+        barlow_model_path = Path(trial_dir) / Path(model_fname)
         print(f"Starting pipeline for {trial_name}")
-        if args.debug:
+        if DEBUG:
             print(f"[DEBUG] Model path: {barlow_model_path}")
 
         new_project_name = make_project_like(
             project_path=project_path, 
-            target_directory=args.new_location, 
+            target_directory=new_location, 
             target_suffix=trial_name,
             steps_to_keep=['preprocessing', 'segmentation'],
-            verbose=3 if args.debug else 0
+            verbose=3 if DEBUG else 0
         )
         if not barlow_model_path.is_file():
             print(f"Warning: Model file not found: {barlow_model_path} - skipping {trial_name}")
@@ -82,7 +82,7 @@ def main():
         # Two options: use tracklets or direct segmentation
         project_data = ProjectData.load_final_project_data(new_project_name, verbose=0)
         project_config = project_data.project_config
-        if args.use_tracklets:
+        if use_tracklets:
             tracklet_config = project_config.get_training_config()
             config_updates = dict(
                 tracker_params=dict(
@@ -102,7 +102,7 @@ def main():
             config_updates = dict(use_barlow_tracker=True, barlow_model_path=str(barlow_model_path))
             snakemake_config.config.update(config_updates)
             snakemake_config.update_self_on_disk()
-            if args.use_label_propagation:
+            if use_label_propagation:
                 # Also update the tracking config file
                 tracking_config = project_config.get_tracking_config()
                 config_updates = dict(barlow_tracker=dict(tracking_mode='label_propagation'))
@@ -115,14 +115,18 @@ def main():
     # Note that the script is already recursive
 
     CMD = ["bash", os.path.join(wbfm_home, 'wbfm', 'scripts', 'cluster', 'run_all_projects_in_parent_folder.sh')]
-    CMD.extend(["-t", args.new_location,  "-s" , "traces"])
-    if args.debug:
+    CMD.extend(["-t", new_location,  "-s" , "traces"])
+    if DEBUG:
         # Dryrun
         CMD.append("-n")
     subprocess.call(CMD)
 
-    print(f"All jobs for {len(trial_dirs)} trials in folder {args.new_location} submitted successfully.")
+    print(f"All jobs for {len(trial_dirs)} trials in folder {new_location} submitted successfully.")
 
 
 if __name__ == "__main__":
-    main()
+    args = parse_args()
+
+    main(args.new_location, args.models_dir, args.finished_path, args.model_fname,
+         args.use_projection_space, args.single_trial, args.use_tracklets, args.use_label_propagation, 
+         args.debug)
