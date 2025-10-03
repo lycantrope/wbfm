@@ -1462,7 +1462,30 @@ def load_per_neuron_position(nwbfile_module):
             timestamps = series.timestamps[:]
 
     df = pd.DataFrame(data_dict, index=timestamps)
-    df.columns = pd.MultiIndex.from_tuples(df.columns)
+
+    # Currently the Leifer data is stored just as xyz positions in a very tall dataframe, and it should be converted to a multiindex
+    if df.shape[1] == 3:
+        logging.warning("Detected single-series (tall) format for centroids, converting to multiindex format")
+        # Reshape from (objects per time)*(time) x 3 and seg IDs to (time) x (objects per time) x 4
+
+        # Drop the improperly formed multiindex column level
+        df.columns = df.columns.droplevel(0)
+
+        # The segmentation id (track id) is stored in the "control" field of the series (there is only one series in this case)
+        assert len(nwbfile_module.spatial_series) == 1, "Expected only one spatial series"
+        series = list(nwbfile_module.spatial_series.values())[0]
+        seg_ids = series.control[:]
+        # Pivot the values, multiindex columns = (object_id, variable)
+        df['raw_segmentation_id'] = seg_ids
+        df['neuron_name'] = df['raw_segmentation_id'].apply(lambda x: int2name_neuron(x+1))
+        print(df)
+        df = df.reset_index(names='time').pivot(index="time", columns="neuron_name", values=["x", "y", "z", "raw_segmentation_id"])
+
+        # Reorder to (neuron_name, z/x/y)
+        df = df.swaplevel(0, 1, axis=1).sort_index(axis=1, level=0)
+    else:
+        df.columns = pd.MultiIndex.from_tuples(df.columns)
+
     return df
 
 
