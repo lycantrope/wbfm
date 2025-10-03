@@ -1478,7 +1478,6 @@ def load_per_neuron_position(nwbfile_module):
         # Pivot the values, multiindex columns = (object_id, variable)
         df['raw_segmentation_id'] = seg_ids
         df['neuron_name'] = df['raw_segmentation_id'].apply(lambda x: int2name_neuron(x+1))
-        print(df)
         df = df.reset_index(names='time').pivot(index="time", columns="neuron_name", values=["x", "y", "z", "raw_segmentation_id"])
 
         # Reorder to (neuron_name, z/x/y)
