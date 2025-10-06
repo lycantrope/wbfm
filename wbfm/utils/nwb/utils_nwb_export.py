@@ -27,7 +27,7 @@ from ndx_multichannel_volume import CElegansSubject, OpticalChannelReferences, O
 from skimage.measure import regionprops
 from tifffile import tifffile
 from tqdm.auto import tqdm
-from wbfm.utils.external.utils_pandas import convert_binary_columns_to_one_hot
+from wbfm.utils.external.utils_pandas import convert_binary_columns_to_one_hot, fill_missing_indices_with_nan
 
 import itertools
 from wbfm.utils.projects.finished_project_data import ProjectData
@@ -1483,6 +1483,7 @@ def load_per_neuron_position(nwbfile_module):
 
         # Reorder to (neuron_name, z/x/y)
         df = df.swaplevel(0, 1, axis=1).sort_index(axis=1, level=0)
+        df, _ = fill_missing_indices_with_nan(df, expected_max_t=int(df.index.max()))
     else:
         df.columns = pd.MultiIndex.from_tuples(df.columns)
 
