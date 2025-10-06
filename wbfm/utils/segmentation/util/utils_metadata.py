@@ -141,7 +141,9 @@ class DetectedNeurons:
         -------
 
         """
-        assert Path(self.detection_fname).exists(), f"{self.detection_fname} doesn't exist!"
+        if not Path(self.detection_fname).exists():
+            raise FileNotFoundError(f"{self.detection_fname} doesn't exist!")
+        
         if self._segmentation_metadata is None:
             # Note: dict of dataframes
             try:
