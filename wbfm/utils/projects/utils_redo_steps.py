@@ -314,7 +314,7 @@ def combine_metadata_from_two_dataframes(df_raw_ind, df_with_metadata, column_to
                 continue
         nonnan_times = df_raw_ind.loc[:, (neuron, column_to_match)].dropna().index
 
-        for t in tqdm(nonnan_times, leave=False, desc=f"Processing times for neuron {neuron}"):
+        for t in nonnan_times:
         # Loop 2: over each non-nan time point in df_raw_ind
             this_row = df_raw_ind.loc[t, neuron]
             match_value = this_row[column_to_match]
