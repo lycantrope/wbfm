@@ -4,6 +4,7 @@ from collections import defaultdict
 
 import numpy as np
 import pandas as pd
+from traitlets import default
 import zarr
 
 from wbfm.utils.external.utils_pandas import cast_int_or_nan
@@ -294,7 +295,7 @@ def combine_metadata_from_two_dataframes(df_raw_ind, df_with_metadata, column_to
 
     """
     # Prepare result DataFrame (copy to avoid modifying input)
-    dict_result = {}
+    dict_result = defaultdict(lambda : np.zeros(df_raw_ind.shape[0]))
 
     # Get unique neuron names from both frames
     neurons_raw = df_raw_ind.columns.get_level_values(0).unique()
@@ -320,9 +321,9 @@ def combine_metadata_from_two_dataframes(df_raw_ind, df_with_metadata, column_to
             for col in this_row.index:
                 if col == column_to_match:
                     continue
-                dict_result[(neuron, col)] = this_row[col]
-            for col in  original_row.index:
-                dict_result[(neuron, col)] = original_row[col]
+                dict_result[(neuron, col)][t] = this_row[col]
+            for col in original_row.index:
+                dict_result[(neuron, col)][t] = original_row[col]
 
     df_result = pd.DataFrame(dict_result)
     return df_result
