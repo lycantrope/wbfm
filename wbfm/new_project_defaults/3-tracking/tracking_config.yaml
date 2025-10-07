@@ -93,5 +93,5 @@ opt_umap:
   min_dist: 0.0
 
 barlow_tracker:
-  tracking_mode: global
+  tracking_mode: label_propagation
   

@@ -278,7 +278,8 @@ def add_metadata_to_df_raw_ind(df_raw_ind, segmentation_metadata: DetectedNeuron
     return new_df
 
 
-def combine_metadata_from_two_dataframes(df_raw_ind, df_with_metadata, column_to_match='raw_neuron_ind_in_list', raise_error=True):
+def combine_metadata_from_two_dataframes(df_raw_ind, df_with_metadata, column_to_match='raw_neuron_ind_in_list', raise_error=True,
+                                         DEBUG=False):
     """
     Given a dataframe with only the raw_ind_in_list, add metadata to it
 
@@ -312,7 +313,7 @@ def combine_metadata_from_two_dataframes(df_raw_ind, df_with_metadata, column_to
             else:
                 print(f"Warning: Column '{column_to_match}' not found in neuron '{neuron}' of df_raw_ind, skipping")
                 continue
-        nonnan_times = df_raw_ind.loc[:, (neuron, column_to_match)].dropna().index
+        nonnan_times = df_raw_ind.loc[:, (neuron, column_to_match)].dropna().index.astype(int)
 
         for t in nonnan_times:
         # Loop 2: over each non-nan time point in df_raw_ind
@@ -321,7 +322,7 @@ def combine_metadata_from_two_dataframes(df_raw_ind, df_with_metadata, column_to
 
             # Find matching row in df_with_metadata for this neuron, across top-level objects
             _df = df_with_metadata.loc[t, (slice(None), column_to_match)]
-            original_match = _df.index.get_level_values(0)[(_df == match_value).values]
+            original_match = _df.index.get_level_values(0)[(_df == match_value).values][0]
             original_row = df_with_metadata.loc[t, original_match]
 
             # Generate new column names and values
@@ -331,6 +332,10 @@ def combine_metadata_from_two_dataframes(df_raw_ind, df_with_metadata, column_to
                 dict_result[(neuron, col)][t] = this_row[col]
             for col in original_row.index:
                 dict_result[(neuron, col)][t] = original_row[col]
+        if DEBUG:
+            print(this_row.index)
+            print(original_row.index)
+            break
 
     df_result = pd.DataFrame(dict_result)
     return df_result
