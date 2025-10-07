@@ -35,7 +35,7 @@ else
 fi
 
 # Define relevant subfolders
-SUBFOLDERS=("freely_moving" "immobilized" "barlow" "nwb" "immobilized_barlow_tracklets")
+SUBFOLDERS=("freely_moving" "immobilized" "barlow" "nwb")
 
 # For each subfolder, remove any project folders
 for f in "${SUBFOLDERS[@]}"; do
@@ -116,8 +116,8 @@ bash $SLURM_UPDATE_COMMAND -t "$PROJECT_PATH" -c "$NEW_NWB_CONFIG"
 bash $COMMAND -t "$PROJECT_PATH" -s traces $RUNME_ARGS
 
 # Immobilized with barlow-generated tracklets
-PROJECT_PATH=$PARENT_PROJECT_DIR/"immobilized_barlow_tracklets"
-BARLOW_TRACKLET_CONFIG=$CODE_DIR/"alternative_project_defaults/barlow_tracklets/training_data_config.yaml"
-bash $SLURM_UPDATE_COMMAND -t "$PROJECT_PATH" -c "$NEW_CONFIG"
-bash $SLURM_UPDATE_COMMAND -t "$PROJECT_PATH" -c "$BARLOW_TRACKLET_CONFIG"
-bash $COMMAND -t "$PROJECT_PATH" -s traces $RUNME_ARGS
+# PROJECT_PATH=$PARENT_PROJECT_DIR/"immobilized_barlow_tracklets"
+# BARLOW_TRACKLET_CONFIG=$CODE_DIR/"alternative_project_defaults/barlow_tracklets/training_data_config.yaml"
+# bash $SLURM_UPDATE_COMMAND -t "$PROJECT_PATH" -c "$NEW_CONFIG"
+# bash $SLURM_UPDATE_COMMAND -t "$PROJECT_PATH" -c "$BARLOW_TRACKLET_CONFIG"
+# bash $COMMAND -t "$PROJECT_PATH" -s traces $RUNME_ARGS
