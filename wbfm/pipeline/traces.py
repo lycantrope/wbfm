@@ -189,9 +189,12 @@ def full_step_4_make_traces_from_config(project_cfg, allow_only_global_tracker=F
             # Also produce the paper-style "final" traces, and copy them to the final traces folder
             project_data = ProjectData.load_final_project_data(project_cfg, **project_kwargs)
             calc_paper_traces_using_config(project_data)
+        except Exception as e:
+            project_data.logger.error(f"Encountered error while making paper traces; this step may have failed and need to be rerun, but leaving intermediate products for debugging ({e})")
 
+        try:
             # By default make some visualizations
             project_data = ProjectData.load_final_project_data(project_cfg, **project_kwargs)
             make_default_summary_plots_using_config(project_data)
         except Exception as e:
-            project_data.logger.error(f"Encountered error while making traces or visualizations; this step may have failed and need to be rerun, but leaving intermediate products for debugging ({e})")
+            project_data.logger.error(f"Encountered error while making visualizations; this step may have failed and need to be rerun, but leaving intermediate products for debugging ({e})")
