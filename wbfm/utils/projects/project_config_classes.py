@@ -379,7 +379,7 @@ class ModularProjectConfig(ConfigFileWithProjectContext):
     def get_nwb_config(self, make_subfolder=True) -> SubfolderConfigFile:
         fname = self.config['subfolder_configs'].get('nwb', None)
         if fname is None:
-            fname = Path(self.project_dir).joinpath('nwb', 'nwb_config.yaml')
+            fname = Path(self.project_dir).joinpath('nwb', 'nwb_config.yaml')  # Default (local) path; old projects don't have this subfolder_config entry
             if not fname.exists():
                 if make_subfolder:
                     self.initialize_nwb_folder()
