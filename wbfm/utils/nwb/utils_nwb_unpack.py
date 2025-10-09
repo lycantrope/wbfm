@@ -6,7 +6,7 @@ import dask.array as da
 import argparse
 
 
-def unpack_nwb_to_project_structure(project_dir, nwb_path):
+def unpack_nwb_to_project_structure(project_dir):
     """
     Unpack an NWB file into the expected on-disk project structure for the pipeline.
     
