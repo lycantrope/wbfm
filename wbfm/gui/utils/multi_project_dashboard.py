@@ -4,7 +4,7 @@ from glob import glob
 import sys
 import os
 from pathlib import Path
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Tuple
 from datetime import datetime
 from tqdm.auto import tqdm
@@ -34,6 +34,20 @@ class SnakemakeStats:
     failed_rules: int = 0
     running: bool = False
     error_message: Optional[str] = None
+
+    completed_rule_names: set = field(default_factory=set)
+    pending_rule_names: set = field(default_factory=set)
+    failed_rule_names: set = field(default_factory=set)
+
+
+def make_rule_tooltip(stats: SnakemakeStats) -> str:
+    def fmt(rules):
+        return ", ".join(sorted(rules)) if rules else "None"
+    return (
+        f"Completed rules:\n{fmt(stats.completed_rule_names)}\n\n"
+        f"Pending rules:\n{fmt(stats.pending_rule_names)}\n\n"
+        f"Failed rules:\n{fmt(stats.failed_rule_names)}"
+    )
 
 
 @dataclass
@@ -135,6 +149,8 @@ class Project:
         stats = SnakemakeStats()
         in_job_table = False
         counts = {}
+        job_id2name = {}
+        job_id_count = 0
         
         finished_jobs = set()
         failed_jobs = set()
@@ -161,13 +177,15 @@ class Project:
                             counts[rule] = int(count)
                         else:
                             stats.total_rules = int(count)
+                        job_id2name[job_id_count] = rule
+                        job_id_count += 1
                     continue
 
                 # ---- Finished jobs ----
                 if re.search(r"Finished job \d+\.", line):
                     m = re.search(r"Finished job (\d+)\.", line)
                     if m:
-                        finished_jobs.add(m.group(1))
+                        finished_jobs.add(job_id2name[int(m.group(1))])
                     continue
 
                 # ---- Failed jobs ----
@@ -187,10 +205,9 @@ class Project:
         stats.failed_rules = len(failed_jobs)
         stats.pending_rules = stats.total_rules - stats.completed_rules - stats.failed_rules
 
-        # print("="*100)
-        # print(counts)
-        # print(finished_jobs)
-        # print(failed_jobs)
+        stats.completed_rule_names = finished_jobs
+        stats.failed_rule_names = failed_jobs
+        # stats.pending_rule_names = all_rules - finished_jobs - failed_jobs
 
         return stats#, counts
 
@@ -829,6 +846,10 @@ class ProjectStatusGUI(QMainWindow):
                 project_item.setForeground(0, QColor(200, 0, 0))
             elif status == "running":
                 project_item.setForeground(0, QColor(0, 100, 200))
+            
+            # Tooltip with detailed stats
+            if project.stats:
+                project_item.setToolTip(0, make_rule_tooltip(project.stats))
         
         self.tree_widget.expandAll()
     
@@ -889,6 +910,10 @@ class ProjectStatusGUI(QMainWindow):
             details = project.get_status_details()
             details_item = QTableWidgetItem(details)
             self.table_widget.setItem(row, 5, details_item)
+
+            # Tooltip with detailed stats
+            if project.stats:
+                name_item.setToolTip(make_rule_tooltip(project.stats))
         
         self.table_widget.setSortingEnabled(True)
     
