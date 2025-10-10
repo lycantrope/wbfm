@@ -206,6 +206,11 @@ class Project:
                         failed_jobs.add("unknown")
                     continue
 
+                # ---- All jobs were finished before this log file ----
+                if line.startswith("Nothing to be done"):
+                    finished_jobs.add("Nothing to be done")
+                    break  # No need to search more
+
         # Sometimes jobs failed but then were re-run and finished
         failed_jobs.difference_update(finished_jobs)
         submitted_jobs.difference_update(finished_jobs)
