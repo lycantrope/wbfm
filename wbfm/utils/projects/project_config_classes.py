@@ -284,6 +284,17 @@ class ModularProjectConfig(ConfigFileWithProjectContext):
 
     _preprocessing_class: RawFluorescenceData = None
 
+    def get_project_config_of_remote_project(self, step=None) -> Optional[str]:
+        # Checks if any of the subfolder configs are absolute paths, and if so, returns the corresponding project path
+        remote_project_dir = None
+        for fname, config_path in self.config['subfolder_configs'].items():
+            if step is not None and fname != step:
+                continue
+            if os.path.isabs(config_path):
+                remote_project_dir = os.path.dirname(os.path.dirname(config_path))
+                break
+        return remote_project_dir
+
     def get_segmentation_config(self) -> SubfolderConfigFile:
         fname = Path(self.config['subfolder_configs']['segmentation'])
         return SubfolderConfigFile(**self._check_path_and_load_config(fname))
