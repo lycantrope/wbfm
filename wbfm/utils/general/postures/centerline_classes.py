@@ -190,7 +190,10 @@ class WormFullVideoPosture:
 
     @property
     def num_high_res_frames(self):
-        return len(self._raw_stage_position)
+        try:
+            return len(self._raw_stage_position)
+        except NoBehaviorAnnotationsError:
+            return len(self._raw_centerlineX)
 
     def _pad_if_not_long_enough(self, df):
         # Need to properly continue the index
