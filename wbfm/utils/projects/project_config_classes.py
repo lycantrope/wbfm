@@ -461,6 +461,10 @@ class ModularProjectConfig(ConfigFileWithProjectContext):
             project_dir = Path(resolve_mounted_path_in_current_os(str(subconfig_path.parent.parent)))
         else:
             project_dir = Path(self.absolute_self_path).parent
+
+        if is_absolute_in_any_os(subconfig_path):
+            subconfig_path = Path(resolve_mounted_path_in_current_os(str(subconfig_path)))
+
         with safe_cd(project_dir):
             try:
                 cfg = load_config(subconfig_path)
