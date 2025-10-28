@@ -4,7 +4,7 @@ import logging
 import math
 import os
 from pathlib import Path
-from typing import Union, Optional, List, Tuple, Dict
+from typing import Type, Union, Optional, List, Tuple, Dict
 import dask.array as da
 import numpy as np
 import pandas as pd
@@ -1028,13 +1028,16 @@ class WormFullVideoPosture:
             beh_vec = beh_vec.apply(BehaviorCodes.convert_to_simple_states)
         return beh_vec
 
-    def all_found_behaviors(self, convert_to_strings=False, **kwargs):
-        beh = self.beh_annotation(**kwargs)
-        beh_unique = beh.unique()
-        if convert_to_strings:
-            beh_unique = [behavior.individual_names for behavior in beh_unique]
-            # Flatten the nested list, and only keep unique values
-            beh_unique = list({item for sublist in beh_unique for item in sublist})
+    def all_found_behaviors(self, convert_to_strings=False, **kwargs) -> list:
+        try:
+            beh = self.beh_annotation(**kwargs)
+            beh_unique = beh.unique()
+            if convert_to_strings:
+                beh_unique = [behavior.individual_names for behavior in beh_unique]
+                # Flatten the nested list, and only keep unique values
+                beh_unique = list({item for sublist in beh_unique for item in sublist})
+        except (NoBehaviorAnnotationsError, TypeError):
+            beh_unique = []
         return beh_unique
 
     @lru_cache(maxsize=64)
