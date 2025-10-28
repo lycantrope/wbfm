@@ -4,7 +4,6 @@ import os
 from functools import partial
 from pathlib import Path
 from typing import Optional, Union, Callable, List
-import seaborn as sns
 import pandas as pd
 from matplotlib.colors import TwoSlopeNorm
 import numpy as np
@@ -882,6 +881,7 @@ def make_heatmap_using_project(project_data: ProjectData, to_save=True, plot_kwa
         plot_kwargs['vmax'] = 2*np.quantile(df.values, 0.95)
 
     # Plot
+    import seaborn as sns
     fig = sns.clustermap(df, **plot_kwargs)
     if project_data.use_physical_time:
         ax = fig.ax_heatmap
