@@ -9,4 +9,9 @@ setup(name='wbfm',
       author_email='charles.fieseler@gmail.com',
       license='MIT',
       packages=setuptools.find_namespace_packages(),
-      zip_safe=False)
+      zip_safe=False,
+    include_package_data=True,
+      package_data={
+            "wbfm": ["**/*.yaml"],
+      },
+      )
