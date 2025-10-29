@@ -8,7 +8,6 @@ import torch
 from wbfm.utils.neuron_matching.utils_matching import filter_matches
 from matplotlib import pyplot as plt
 from tqdm.auto import tqdm
-import seaborn as sns
 
 from wbfm.utils.external.utils_pandas import df_to_matches, accuracy_of_matches
 from wbfm.utils.general.postprocessing.postprocessing_utils import filter_dataframe_using_likelihood
@@ -160,6 +159,7 @@ def plot_histogram_at_likelihood_thresh(df1, df2, likelihood_thresh):
     df_all_acc = calculate_accuracy_from_dataframes(df1, df2_filter)
 
     dat = [df_all_acc['matches_to_gt_nonnan'], df_all_acc['mismatches'], df_all_acc['nan_in_gt']]
+    import seaborn as sns
 
     sns.histplot(dat, common_norm=False, stat="percent", multiple="stack")
     # sns.histplot(dat, multiple="stack")
