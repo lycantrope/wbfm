@@ -53,18 +53,17 @@ def resolve_mounted_path_in_current_os(raw_path: str, verbose: int = 0) -> str:
 
     # Swap mounted drive locations
     # UPDATE REGULARLY
-    # Last updated: Nov 2023
+    # Last updated: Oct 2025
     mounted_drive_pairs = [
         ('Y:', "/groups/zimmer"),
-        ('Z:', "/scratch"),
-        ('Z:', "/lisc/scratch"),
-        ('Z:', "/lisc/scratch/neurobiology"),
-        ('Z:', "/lisc/scratch/neurobiology/zimmer"),
-        ('S:', "/scratch"),
-        ('S:', "/lisc/scratch"),
-        ('S:', "/lisc/scratch/neurobiology"),
-        ('S:', "/lisc/scratch/neurobiology/zimmer"),
-        (r'//samba.lisc.univie.ac.at/scratch', "/lisc/scratch")
+        ('Z:', "/lisc/data/scratch"),
+        ('Z:', "/lisc/data/scratch/neurobiology"),
+        ('Z:', "/lisc/data/scratch/neurobiology/zimmer"),
+        ('S:', "/lisc/data/scratch"),
+        ('S:', "/lisc/data/scratch/neurobiology"),
+        ('S:', "/lisc/data/scratch/neurobiology/zimmer"),
+        (r'//samba.lisc.univie.ac.at/scratch', "/lisc/data/scratch"),  # Mac
+        ('/lisc/scratch', "/lisc/data/scratch")
     ]
 
     # Loop through drive name matches, and test each one
@@ -74,9 +73,15 @@ def resolve_mounted_path_in_current_os(raw_path: str, verbose: int = 0) -> str:
 
         path = None
         try:
-            if machine_is_linux and path_is_windows_style:
-                path = raw_path.replace(win_drive, linux_drive)
-                path = str(Path(path).resolve())
+            if machine_is_linux:
+                if path_is_windows_style:
+                    path = raw_path.replace(win_drive, linux_drive)
+                    path = str(Path(path).resolve())
+                elif path_is_linux_style:
+                    # Then we're trying to fix the cluster renaming the partitions (currently, same fixing logic as above)
+                    path = raw_path.replace(win_drive, linux_drive)
+                    path = str(Path(path).resolve())
+                    
             elif machine_is_windows and path_is_linux_style:
                 path = raw_path.replace(linux_drive, win_drive)
                 path = str(Path(path).resolve())
@@ -92,11 +97,15 @@ def resolve_mounted_path_in_current_os(raw_path: str, verbose: int = 0) -> str:
             # Happens when the mounted drive name doesn't exist or has another error
             pass
     else:
+
         path = raw_path
         if verbose >= 1:
             print(f"Did not successfully resolve path; returning raw path: {raw_path}")
 
-    assert path is not None
+
+
+    # Final checks
+    assert path is not None, f"Resolving path in OS failed; this shouldn't happen (raw_path: {raw_path})"
 
     return path
 

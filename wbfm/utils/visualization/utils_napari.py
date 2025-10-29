@@ -1,3 +1,4 @@
+from ast import Index
 from dataclasses import dataclass
 from typing import Dict, List
 
@@ -114,7 +115,7 @@ def napari_labels_from_traces_dataframe(df, neuron_name_dict=None, label_using_c
         all_t_zxy = all_t_zxy[to_keep, :]
         properties['automatic_label'] = [cast_int_or_nan(p) for p, good in zip(properties['automatic_label'], to_keep) if good]
         properties['custom_label'] = [p for p, good in zip(properties['custom_label'], to_keep) if good]
-    except TypeError:
+    except (TypeError, IndexError):
         # Then the user is passing a non-int custom name, so just skip this
         pass
     # More info on text: https://github.com/napari/napari/blob/main/examples/add_points_with_text.py
@@ -338,9 +339,9 @@ def napari_tracks_from_match_list(list_of_matches, n0_zxy_raw, n1_zxy_raw, null_
             continue
 
         track_m0 = [i_track, t0]
-        track_m0.extend(n0_zxy_raw[m[0]])
+        track_m0.extend(n0_zxy_raw[int(m[0])])
         track_m1 = [i_track, t0 + 1]
-        track_m1.extend(n1_zxy_raw[m[1]])
+        track_m1.extend(n1_zxy_raw[int(m[1])])
 
         all_tracks_list.append(track_m0)
         all_tracks_list.append(track_m1)

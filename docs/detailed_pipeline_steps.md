@@ -158,7 +158,7 @@ Preparation:
 
 Command:
 ```bash
-python scripts/3a-track_using_superglue.py with project_path=PATH-TO-YOUR-PROJECT
+python scripts/3a-track_time_independent.py with project_path=PATH-TO-YOUR-PROJECT
 ```
 
 Speed: 1-3 hours

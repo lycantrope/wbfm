@@ -9,15 +9,15 @@
 #
 use_barlow_tracker: False  # Experimental, possibly much better tracker
 
-# Uncomment the relevant one
+# Uncomment the relevant one; each was trained on different data
 # Generally within /lisc/scratch/neurobiology/zimmer/wbfm/TrainedBarlow
-# Baseline model:
+# Baseline model: (2% agar)
 barlow_model_path: /lisc/scratch/neurobiology/zimmer/wbfm/TrainedBarlow/barlow_ZIM2165_Gcamp7b_worm1-2022_11_28_from_search/trial_13/resnet50.pth
-# Fungus model:
+# Fungus:
 #barlow_model_path: /lisc/scratch/neurobiology/zimmer/wbfm/TrainedBarlow/hyperparameter_search_fungus/resnet50.pth
-# Neuropal model:
+# Neuropal:
 #barlow_model_path: /lisc/scratch/neurobiology/zimmer/wbfm/TrainedBarlow/hyperparameter_search_neuropal/resnet50.pth
-# 1% agar model:
+# 1% agar:
 #barlow_model_path: /lisc/scratch/neurobiology/zimmer/wbfm/TrainedBarlow/hyperparameter_search_1percent/resnet50.pth
 
 
@@ -81,7 +81,7 @@ head_tail_dlc_project: /lisc/scratch/neurobiology/zimmer/zimmer_DLC/DLC_projects
 # preprocess spline
 relative_spacing: 1.0  # 1% of the skeleton's total length to determine the spacing between sampled points
 num_sampled_points: 10000  # Number of points to sample during spline fitting, higher values result in finer resolution
-smoothing: 0.1  # Smoothing parameter for the spline fitting, controls how much the spline is smoothed (higher = more smoothing)
+smoothing: 0.0  # Smoothing parameter for the spline fitting, controls how much the spline is smoothed (higher = more smoothing)
 time_sigma: 2.0  # Sigma for Gaussian smoothing along the time (frame) axis, higher values smooth more across frames
 spatial_sigma: 1.0  # Sigma for Gaussian smoothing along the spatial axis, higher values smooth more across points in each frame
 max_columns: 0  # Dynamic mode: when set to 0, the skeleton is truncated where NaN content increases by more than 50%

@@ -207,7 +207,7 @@ def save_video_of_heatmap_with_behavior(project_path: Union[str, Path], output_f
         return cv2.cvtColor(data, cv2.COLOR_GRAY2RGB)
 
     # Define scale bar parameters
-    scale_length_um = 100  # 1mm
+    scale_length_um = 100
     scale_length_px = int(scale_length_um / um_per_pixel)  # Convert mm to pixels
     scale_bar_start = (10, height - 50)  # Starting position (x, y)
     scale_bar_end = (10 + scale_length_px, height - 50)  # Ending position (x, y)
@@ -808,3 +808,34 @@ def save_video_of_heatmap_and_pca_with_behavior(project_path: Union[str, Path], 
 
     # Release everything when done
     output_video.release()
+
+
+def add_scale_bar(fig, img_shape, um_per_pixel = 0.5, scale_length_um = 100, color="white", size_text=14, DEBUG=False):
+    """Note that img_shape is (height, width) and can be a cropped range"""
+    scale_length_px = int(scale_length_um / um_per_pixel)  # convert to pixels
+
+    # Define where to place the scale bar (e.g. bottom right)
+    bar_height = img_shape[0] - 10   # 10 px from bottom
+    bar_start = img_shape[1] - scale_length_px - 10  # 10 px from right
+    bar_end = img_shape[1] - 10
+    if DEBUG:
+        print(f"Adding scale bar of {scale_length_um} um ({scale_length_px} px) from ({bar_start}, {bar_height}) to ({bar_end}, {bar_height})")
+
+    # Add a white line for the scale bar
+    fig.add_shape(
+        type="line",
+        x0=bar_start, y0=bar_height,
+        x1=bar_end, y1=bar_height,
+        line=dict(color=color if not DEBUG else "red", width=3)
+    )
+
+    # Add text label (e.g. "100 µm")
+    fig.add_annotation(
+        x=(bar_start + bar_end) / 2,
+        y=bar_height - 35,  # a bit above the line
+        text=f"{scale_length_um} µm",
+        showarrow=False,
+        font=dict(color=color, size=size_text)
+    )
+
+    return fig 
