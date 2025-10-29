@@ -83,7 +83,7 @@ def load_hardcoded_neural_network_paths() -> dict:
 
 def is_zimmer_lab():
     """Loose check to see if the code is running on the lisc cluster, from the zimmer lab"""
-    return Path('/lisc/scratch/neurobiology/zimmer').exists()
+    return Path('/lisc/data/scratch/neurobiology/zimmer').exists()
 
 ##
 # "Final" set of good datasets
@@ -99,16 +99,16 @@ def get_summary_visualization_dir():
 
     """
 
-    return "/lisc/scratch/neurobiology/zimmer/fieseler/multiproject_visualizations"
+    return "/lisc/data/scratch/neurobiology/zimmer/fieseler/multiproject_visualizations"
 
 
 def get_project_parent_folder():
-    return "/lisc/scratch/neurobiology/zimmer/fieseler/wbfm_projects"
+    return "/lisc/data/scratch/neurobiology/zimmer/fieseler/wbfm_projects"
 
 
 def get_hierarchical_modeling_dir(gfp=False, immobilized=False, o2_stimulus=False, mutant=False,
                                   suffix=None):
-    parent_folder = "/lisc/scratch/neurobiology/zimmer/fieseler/paper/"
+    parent_folder = "/lisc/data/scratch/neurobiology/zimmer/fieseler/paper/"
     base_name = "hierarchical_modeling"
     if suffix is None:
         if gfp:
@@ -127,7 +127,7 @@ def get_hierarchical_modeling_dir(gfp=False, immobilized=False, o2_stimulus=Fals
 
 
 def get_triggered_average_modeling_dir():
-    return "/lisc/scratch/neurobiology/zimmer/fieseler/paper/triggered_average_dataframes"
+    return "/lisc/data/scratch/neurobiology/zimmer/fieseler/paper/triggered_average_dataframes"
 
 
 def all_paper_datatype_codes():
@@ -208,34 +208,34 @@ def load_paper_datasets(genotype: Union[str, list] = 'gcamp', require_behavior=F
         list_of_all_projects = _resolve_project_from_worm_id(folder_and_id_dict)
         good_projects = load_all_projects_from_list(list_of_all_projects, only_load_paths=only_load_paths, **kwargs)
     elif genotype == 'gfp':
-        folder_path = '/lisc/scratch/neurobiology/zimmer/fieseler/wbfm_projects/2022-12-10_spacer_7b_2per_agar_GFP'
+        folder_path = '/lisc/data/scratch/neurobiology/zimmer/fieseler/wbfm_projects/2022-12-10_spacer_7b_2per_agar_GFP'
         good_projects = load_all_projects_in_folder(folder_path, only_load_paths=only_load_paths, **kwargs)
     elif genotype == 'immob':
-        folder_path = '/lisc/scratch/neurobiology/zimmer/fieseler/wbfm_projects/2022-11-03_immob_adj_settings_2'
+        folder_path = '/lisc/data/scratch/neurobiology/zimmer/fieseler/wbfm_projects/2022-11-03_immob_adj_settings_2'
         require_behavior = False  # No annotation of behavior here
         good_projects = load_all_projects_in_folder(folder_path, only_load_paths=only_load_paths, **kwargs)
         # Second folder, which extends above dictionary
-        folder_path = '/lisc/scratch/neurobiology/zimmer/fieseler/wbfm_projects/2022-12-12_immob'
+        folder_path = '/lisc/data/scratch/neurobiology/zimmer/fieseler/wbfm_projects/2022-12-12_immob'
         good_projects.update(load_all_projects_in_folder(folder_path, only_load_paths=only_load_paths, **kwargs))
     elif genotype == 'hannah_O2_fm':
-        folder_path = '/lisc/scratch/neurobiology/zimmer/brenner/wbfm_projects/analyze/freely_moving_wt'
+        folder_path = '/lisc/data/scratch/neurobiology/zimmer/brenner/wbfm_projects/analyze/freely_moving_wt'
         good_projects = load_all_projects_in_folder(folder_path, only_load_paths=only_load_paths, **kwargs)
-        folder_path = '/lisc/scratch/neurobiology/zimmer/brenner/wbfm_projects/analyze/IM_to_FM_freely_moving'
+        folder_path = '/lisc/data/scratch/neurobiology/zimmer/brenner/wbfm_projects/analyze/IM_to_FM_freely_moving'
         good_projects.update(load_all_projects_in_folder(folder_path, only_load_paths=only_load_paths, **kwargs))
     elif genotype == 'hannah_O2_immob':
-        folder_path = '/lisc/scratch/neurobiology/zimmer/brenner/wbfm_projects/analyze/immobilized_wt'
+        folder_path = '/lisc/data/scratch/neurobiology/zimmer/brenner/wbfm_projects/analyze/immobilized_wt'
         good_projects = load_all_projects_in_folder(folder_path, only_load_paths=only_load_paths, **kwargs)
     elif genotype == 'itamar_O2_immob':
-        folder_path = '/lisc/scratch/neurobiology/zimmer/ItamarLev/WBFM/WBFM_projects/immob_wbfm_o2'
+        folder_path = '/lisc/data/scratch/neurobiology/zimmer/ItamarLev/WBFM/WBFM_projects/immob_wbfm_o2'
         good_projects = load_all_projects_in_folder(folder_path, only_load_paths=only_load_paths, **kwargs)
     elif genotype == 'hannah_O2_fm_mutant' or genotype == 'mutant':
-        folder_path = '/lisc/scratch/neurobiology/zimmer/brenner/wbfm_projects/analyze/freely_moving_mutant'
+        folder_path = '/lisc/data/scratch/neurobiology/zimmer/brenner/wbfm_projects/analyze/freely_moving_mutant'
         good_projects = load_all_projects_in_folder(folder_path, only_load_paths=only_load_paths, **kwargs)
     elif genotype == 'hannah_O2_immob_mutant' or genotype == 'immob_mutant_o2':
-        folder_path = '/lisc/scratch/neurobiology/zimmer/brenner/wbfm_projects/analyze/immobilized_mutant'
+        folder_path = '/lisc/data/scratch/neurobiology/zimmer/brenner/wbfm_projects/analyze/immobilized_mutant'
         good_projects = load_all_projects_in_folder(folder_path, only_load_paths=only_load_paths, **kwargs)
     elif genotype == 'O2_hiscl' or genotype == 'immob_o2_hiscl':
-        folder_path = '/lisc/scratch/neurobiology/zimmer/fieseler/wbfm_projects/muscle_hiscl_o2_stimulation'
+        folder_path = '/lisc/data/scratch/neurobiology/zimmer/fieseler/wbfm_projects/muscle_hiscl_o2_stimulation'
         good_projects = load_all_projects_in_folder(folder_path, only_load_paths=only_load_paths, **kwargs)
     else:
         raise NotImplementedError
@@ -277,19 +277,19 @@ def _resolve_project_from_worm_id(folder_and_id_dict):
 
 
 def forward_distribution_statistics():
-    fname = "/lisc/scratch/neurobiology/zimmer/wbfm/DistributionsOfBehavior/forward_duration.pickle"
+    fname = "/lisc/data/scratch/neurobiology/zimmer/wbfm/DistributionsOfBehavior/forward_duration.pickle"
     forward_duration_dict = pickle_load_binary(fname)
     return forward_duration_dict
 
 
 def reverse_distribution_statistics():
-    fname = "/lisc/scratch/neurobiology/zimmer/wbfm/DistributionsOfBehavior/reversal_duration.pickle"
+    fname = "/lisc/data/scratch/neurobiology/zimmer/wbfm/DistributionsOfBehavior/reversal_duration.pickle"
     duration_dict = pickle_load_binary(fname)
     return duration_dict
 
 
 def read_names_of_neurons_to_id() -> pd.Series:
-    fname = "/lisc/scratch/neurobiology/zimmer/wbfm/id_resources/neurons_to_id.csv"
+    fname = "/lisc/data/scratch/neurobiology/zimmer/wbfm/id_resources/neurons_to_id.csv"
     if Path(fname).exists():
         df = pd.read_csv(fname, header=None)
     else:
