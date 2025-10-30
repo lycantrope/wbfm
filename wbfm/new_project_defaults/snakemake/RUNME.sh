@@ -3,7 +3,7 @@
 # Add help function
 function usage {
     echo "Usage: $0 [-s rule] [-n] [-c] [-h] [-R restart_rule]"
-    echo "  -s: snakemake rule to run until, i.e. target rule (default: traces_and_behavior; other options: traces, behavior)"
+    echo "  -s: snakemake rule to run until, i.e. target rule (default: traces; other options: traces_and_behavior, behavior)"
     echo "  -R: snakemake rule to restart from (default: None)"
     echo "  -n: dry run (default: false)"
     echo "  -f: force only one rule (default: false)"
@@ -20,7 +20,7 @@ function usage {
 # Set defaults: not a dry run and on the cluster
 DRYRUN=""
 USE_CLUSTER="True"
-RULE="traces_and_behavior"
+RULE="traces"
 RESTART_RULE=""
 FORCE_ONLY_ONE_RULE="False"
 
@@ -93,7 +93,7 @@ elif [ -z "$USE_CLUSTER" ]; then
     snakemake -s pipeline.smk --unlock  # Unlock the folder, just in case
     snakemake "$RULE" $SNAKEMAKE_OPT
 else
-    echo "Running snakemake rule $RULE on the cluster with options $SNAKEMAKE_OPT and SBATCH options: $SBATCH_OPT"
+    echo "Running snakemake rule $RULE on the cluster with options $SNAKEMAKE_OPT"
     snakemake -s pipeline.smk --unlock  # Unlock the folder, just in case
     snakemake "$RULE" $SNAKEMAKE_OPT --cluster "$SBATCH_OPT --parsable" --cluster-config cluster_config.yaml --jobs $NUM_JOBS_TO_SUBMIT --cluster-status "$CLUSTER_STATUS_SCRIPT"
 fi

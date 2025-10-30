@@ -107,7 +107,13 @@ else:
 # Snakemake for overall targets (either with or without behavior)
 #
 
-# By default, wbfm projects will run everything
+# By default, wbfm projects will run only traces
+# This is important for immobilized worms, which don't have behavior
+rule traces:
+    input:
+        traces=os.path.join(project_dir, "4-traces/green_traces.h5")
+
+# Many projects will also want to run behavior
 rule traces_and_behavior:
     input:
         traces=os.path.join(project_dir, "4-traces/green_traces.h5"),
@@ -115,10 +121,6 @@ rule traces_and_behavior:
         beh_figure=f"{output_behavior_dir}/behavioral_summary_figure.pdf",
         beh_hilbert=f"{output_behavior_dir}/hilbert_inst_amplitude.csv"
 
-# This is important for immobilized worms, which don't have behavior
-rule traces:
-    input:
-        traces=os.path.join(project_dir, "4-traces/green_traces.h5")
 
 rule behavior:
     input:
