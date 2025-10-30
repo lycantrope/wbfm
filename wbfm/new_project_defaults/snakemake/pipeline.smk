@@ -117,7 +117,7 @@ rule traces:
 rule traces_and_behavior:
     input:
         traces=os.path.join(project_dir, "4-traces/green_traces.h5"),
-        trace_summary=os.path.join(output_visualization_directory, "heatmap_with_behavior.mp4"),
+        #trace_summary=os.path.join(output_visualization_directory, "heatmap_with_behavior.mp4"),
         beh_figure=f"{output_behavior_dir}/behavioral_summary_figure.pdf",
         beh_hilbert=f"{output_behavior_dir}/hilbert_inst_amplitude.csv"
 
