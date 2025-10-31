@@ -4,10 +4,10 @@ import sacred
 from sacred import Experiment
 from sacred import SETTINGS
 import cgitb
-from wbfm.utils.general.utils_filenames import get_location_of_new_project_defaults
+from wbfm.utils.external.custom_errors import MissingAnalysisError
 
 cgitb.enable(format='text')
-from wbfm.pipeline.project_initialization import build_project_structure_from_config, build_project_structure_from_nwb_file
+from wbfm.pipeline.project_initialization import build_project_structure_from_nwb_file
 from wbfm.utils.nwb.utils_nwb_unpack import unpack_nwb_to_project_structure
 from wbfm.utils.segmentation.util.utils_metadata import recalculate_metadata_from_config
 
@@ -37,4 +37,7 @@ def main(_config, _run, _log):
 
     if _config['unpack_nwb']:
         unpack_nwb_to_project_structure(project_fname)
-        recalculate_metadata_from_config(project_fname, name_mode='neuron', allow_hybrid_loading=True)
+        try:
+            recalculate_metadata_from_config(project_fname, name_mode='neuron', allow_hybrid_loading=True)
+        except MissingAnalysisError:
+            _log.warning("Could not recalculate metadata after unpacking NWB file; this may be because segmentation has not yet been run.")
