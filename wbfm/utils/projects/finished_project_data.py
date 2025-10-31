@@ -929,9 +929,11 @@ class ProjectData:
         if 'CalciumImageSeries' in nwb_obj.acquisition:
             p.volumes_per_second = nwb_obj.acquisition['CalciumImageSeries'].rate
             grid_spacing = nwb_obj.acquisition['CalciumImageSeries'].imaging_volume.grid_spacing
-            assert grid_spacing[0] == grid_spacing[1], "Grid should be isotropic in xy"
-            p.zimmer_fluroscence_um_per_pixel_xy = grid_spacing[0]
-            p.zimmer_um_per_pixel_z = grid_spacing[2]
+            if len(grid_spacing) == 3 and not grid_spacing[0] == grid_spacing[1]:
+                logging.error(f"Grid should be isotropic in xy; found {grid_spacing}. Ignoring position 1, so errors in visualization may occur")
+            xy_spacing = grid_spacing[0]
+            p.zimmer_fluroscence_um_per_pixel_xy = xy_spacing
+            p.zimmer_um_per_pixel_z = grid_spacing[-1]
             obj.physical_unit_conversion = p
 
         # Save the raw object
