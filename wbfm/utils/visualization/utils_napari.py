@@ -248,7 +248,7 @@ class NapariPropertyHeatMapper:
 
 
 def property_vector_to_colormap(val_to_plot, vec_of_labels, cmap=plt.cm.RdBu,
-                                scale_to_minus_1_and_1=True) -> Dict[int, float]:
+                                scale_to_minus_1_and_1=True, create_colorbar=False) -> Dict[int, float]:
     """
     Takes a vector of values and a vector of labels, and returns a dictionary with the labels as keys and the values
     as colors
@@ -275,6 +275,9 @@ def property_vector_to_colormap(val_to_plot, vec_of_labels, cmap=plt.cm.RdBu,
             raise ValueError("Values should be in the range [-1, 1] for this colormap")
         # matplotlib cmaps need values in [0, 1]
         prop_scaled = (prop + 1) / 2
+        # Use TwoSlopeNorm to ensure white is at 0; only used for colorbar
+        scaler = mcolors.TwoSlopeNorm(vmin=-1, vcenter=0, vmax=1)
+        
     elif np.nanmax(prop) > 0 > np.nanmin(prop):
         # Then we have a special case where white is 0
         scaler = mcolors.TwoSlopeNorm(vmin=np.nanmin(prop), vcenter=0, vmax=np.nanmax(prop))
@@ -286,7 +289,16 @@ def property_vector_to_colormap(val_to_plot, vec_of_labels, cmap=plt.cm.RdBu,
 
     colors = cmap(prop_scaled)
     prop_dict = dict(zip(vec_of_labels, colors))
-    return prop_dict
+
+    if create_colorbar:
+        sm = plt.cm.ScalarMappable(cmap=cmap, norm=scaler)
+        sm.set_array([])
+        fig = plt.figure()
+        plt.colorbar(sm)
+        plt.show()
+        return prop_dict, fig
+    else:
+        return prop_dict
 
 
 def dlc_to_napari_tracks(df, likelihood_thresh=0.4):
