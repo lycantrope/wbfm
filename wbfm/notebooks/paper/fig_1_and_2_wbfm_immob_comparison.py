@@ -72,14 +72,14 @@ project_data_immob2 = all_projects_immob['ZIM2165_immob_adj_set_2_worm2-2022-11-
 
 
 # # Same individual: fm and immob
-# fname = '/lisc/scratch/neurobiology/zimmer/fieseler/wbfm_projects/2022-12-06_wbfm_to_immob/2022-12-06_17-23_ZIM2165_worm5-2022-12-06/project_config.yaml'
+# fname = '/lisc/data/scratch/neurobiology/zimmer/fieseler/wbfm_projects/2022-12-06_wbfm_to_immob/2022-12-06_17-23_ZIM2165_worm5-2022-12-06/project_config.yaml'
 # project_data_fm2immob_fm = ProjectData.load_final_project_data_from_config(fname, verbose=0)
 
-# fname = '/lisc/scratch/neurobiology/zimmer/fieseler/wbfm_projects/2022-12-06_wbfm_to_immob/2022-12-06_17-41_ZIM2165_immob_worm5-2022-12-06'
+# fname = '/lisc/data/scratch/neurobiology/zimmer/fieseler/wbfm_projects/2022-12-06_wbfm_to_immob/2022-12-06_17-41_ZIM2165_immob_worm5-2022-12-06'
 # project_data_fm2immob_immob = ProjectData.load_final_project_data_from_config(fname, verbose=0)
 
 # # Same individual: fm and immob
-# # fname = '/lisc/scratch/neurobiology/zimmer/fieseler/wbfm_projects/2022-12-06_wbfm_to_immob/2022-12-06_17-23_ZIM2165_worm5-2022-12-06/project_config.yaml'
+# # fname = '/lisc/data/scratch/neurobiology/zimmer/fieseler/wbfm_projects/2022-12-06_wbfm_to_immob/2022-12-06_17-23_ZIM2165_worm5-2022-12-06/project_config.yaml'
 # # project_data_fm2immob_fm2 = ProjectData.load_final_project_data_from_config(fname, verbose=0)
 
 # fname = '/scratch/neurobiology/zimmer/fieseler/wbfm_projects/2022-12-06_wbfm_to_immob/2022-12-06_11-07_ZIM2165_immob_worm1-2022-12-06/project_config.yaml'

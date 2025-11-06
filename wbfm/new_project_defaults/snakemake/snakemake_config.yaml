@@ -10,15 +10,15 @@
 use_barlow_tracker: False  # Experimental, possibly much better tracker
 
 # Uncomment the relevant one; each was trained on different data
-# Generally within /lisc/scratch/neurobiology/zimmer/wbfm/TrainedBarlow
+# Generally within /lisc/data/scratch/neurobiology/zimmer/wbfm/TrainedBarlow
 # Baseline model: (2% agar)
-barlow_model_path: /lisc/scratch/neurobiology/zimmer/wbfm/TrainedBarlow/barlow_ZIM2165_Gcamp7b_worm1-2022_11_28_from_search/trial_13/resnet50.pth
+barlow_model_path: /lisc/data/scratch/neurobiology/zimmer/wbfm/TrainedBarlow/barlow_ZIM2165_Gcamp7b_worm1-2022_11_28_from_search/trial_13/resnet50.pth
 # Fungus:
-#barlow_model_path: /lisc/scratch/neurobiology/zimmer/wbfm/TrainedBarlow/hyperparameter_search_fungus/resnet50.pth
+#barlow_model_path: /lisc/data/scratch/neurobiology/zimmer/wbfm/TrainedBarlow/hyperparameter_search_fungus/resnet50.pth
 # Neuropal:
-#barlow_model_path: /lisc/scratch/neurobiology/zimmer/wbfm/TrainedBarlow/hyperparameter_search_neuropal/resnet50.pth
+#barlow_model_path: /lisc/data/scratch/neurobiology/zimmer/wbfm/TrainedBarlow/hyperparameter_search_neuropal/resnet50.pth
 # 1% agar:
-#barlow_model_path: /lisc/scratch/neurobiology/zimmer/wbfm/TrainedBarlow/hyperparameter_search_1percent/resnet50.pth
+#barlow_model_path: /lisc/data/scratch/neurobiology/zimmer/wbfm/TrainedBarlow/hyperparameter_search_1percent/resnet50.pth
 
 
 #
@@ -75,7 +75,7 @@ fft_averaging_window: 83
 
 # Path to neural network for dlc tracking
 # Comment out to use the system default (see wbfm_config.yaml)
-head_tail_dlc_project: /lisc/scratch/neurobiology/zimmer/zimmer_DLC/DLC_projects/DLCwbfm_headtailphar-Eva-2024-11-20/config.yaml
+head_tail_dlc_project: /lisc/data/scratch/neurobiology/zimmer/zimmer_DLC/DLC_projects/DLCwbfm_headtailphar-Eva-2024-11-20/config.yaml
 
 # rule process_centerline for equi distance
 # preprocess spline
@@ -87,4 +87,4 @@ spatial_sigma: 1.0  # Sigma for Gaussian smoothing along the spatial axis, highe
 max_columns: 0  # Dynamic mode: when set to 0, the skeleton is truncated where NaN content increases by more than 50%
 
 # PCA model used for curvature analysis (should be changed for different shapes of worms)
-pca_model:  /lisc/scratch/neurobiology/zimmer/wbfm/pca_models/2per/2per_segments_30_to_80_components_5_zscore_filtered.pkl
+pca_model:  /lisc/data/scratch/neurobiology/zimmer/wbfm/pca_models/2per/2per_segments_30_to_80_components_5_zscore_filtered.pkl

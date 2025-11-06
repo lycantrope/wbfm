@@ -583,7 +583,7 @@ def save_video_of_heatmap_and_pca_with_behavior(project_path: Union[str, Path], 
     See also: save_video_of_heatmap_with_behavior, save_video_of_pca_plot_with_behavior
 
     Example usage:
-        fname = "/lisc/scratch/neurobiology/zimmer/fieseler/wbfm_projects/2022-11-27_spacer_7b_2per_agar/ZIM2165_Gcamp7b_worm1-2022_11_28"
+        fname = "/lisc/data/scratch/neurobiology/zimmer/fieseler/wbfm_projects/2022-11-27_spacer_7b_2per_agar/ZIM2165_Gcamp7b_worm1-2022_11_28"
         save_video_of_heatmap_and_pca_with_behavior(fname)
 
     Parameters

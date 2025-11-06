@@ -14,7 +14,7 @@ tracker_params: # OPTIMIZE
   external_detections: null # TODO: deprecate
   use_barlow_network: true
   encoder_opt:
-    network_path: /lisc/scratch/neurobiology/zimmer/wbfm/TrainedBarlow/barlow_ZIM2165_Gcamp7b_worm1-2022_11_28_from_search/trial_13/resnet50.pth # Path to the Barlow network model folder, which should accept a 3d image
+    network_path: /lisc/data/scratch/neurobiology/zimmer/wbfm/TrainedBarlow/barlow_ZIM2165_Gcamp7b_worm1-2022_11_28_from_search/trial_13/resnet50.pth # Path to the Barlow network model folder, which should accept a 3d image
     use_projection_space: false
 
 # Parameters for additional methods of matching or postprocessing of the feature space

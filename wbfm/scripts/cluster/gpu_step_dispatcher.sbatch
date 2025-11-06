@@ -39,7 +39,7 @@ do
 done
 
 # Unpack the flag into an actual command
-CMD_DIR="/lisc/scratch/neurobiology/zimmer/wbfm/code/wbfm/wbfm/scripts"
+CMD_DIR="/lisc/data/scratch/neurobiology/zimmer/wbfm/code/wbfm/wbfm/scripts"
 
 declare -A CMD_DICT
 CMD_DICT["0b"]="0b-preprocess_working_copy_of_data.py"
@@ -60,7 +60,7 @@ CMD="${CMD_DIR}/${CMD_DICT[$step_reference]}"
 FULL_CMD="$CMD with project_path=$project_path"
 
 if [ "$step_reference" = "3-barlow" ]; then
-  FULL_CMD="$FULL_CMD model_fname=/lisc/scratch/neurobiology/zimmer/wbfm/TrainedBarlow/barlow_ZIM2165_Gcamp7b_worm1-2022_11_28_from_search/trial_0/resnet50.pth"
+  FULL_CMD="$FULL_CMD model_fname=/lisc/data/scratch/neurobiology/zimmer/wbfm/TrainedBarlow/barlow_ZIM2165_Gcamp7b_worm1-2022_11_28_from_search/trial_0/resnet50.pth"
 fi
 
 if [ "$step_reference" = "match_ids" ]; then

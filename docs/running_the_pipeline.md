@@ -120,7 +120,7 @@ In principle "/path/to/projects/folder" should be empty, but this is not necessa
 
 As of September 2023, this is the proper path to this code on the cluster:
 ```commandline
-ls /lisc/scratch/neurobiology/zimmer/wbfm/code/wbfm/wbfm/scripts/cluster
+ls /lisc/data/scratch/neurobiology/zimmer/wbfm/code/wbfm/wbfm/scripts/cluster
 ```
 
 For running projects, you will most likely want to run them all simultaneously instead of one-by-one.

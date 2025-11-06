@@ -138,8 +138,8 @@ class ConfigFileWithProjectContext:
             return str(Path(val).relative_to(project_dir))
         except ValueError:
             try:
-                # As of October 2023, the cluster has /lisc/scratch and/lisc/scratch mapping to the same point
-                # Both should be removed if possible from the path; this will always check the /lisc/scratch version
+                # As of October 2023, the cluster has /lisc/data/scratch and/lisc/data/scratch mapping to the same point
+                # Both should be removed if possible from the path; this will always check the /lisc/data/scratch version
                 project_dir = Path(project_dir).resolve()
                 return str(Path(val).relative_to(project_dir))
             except ValueError:
@@ -631,7 +631,7 @@ class ModularProjectConfig(ConfigFileWithProjectContext):
         """
         Find bigtiffs for the grid pattern, for alignment. Expects 5 files, all with the pattern:
         {date}_alignment-3D-{location}_{channel}
-        Example:/lisc/scratch/neurobiology/zimmer/ulises/wbfm/20220913/2022-09-13_11-55_alignment-3D-TopLeft_Ch0
+        Example:/lisc/data/scratch/neurobiology/zimmer/ulises/wbfm/20220913/2022-09-13_11-55_alignment-3D-TopLeft_Ch0
 
         The locations are:
         center, TopLeft, TopRight, BottomRight, BottomLeft

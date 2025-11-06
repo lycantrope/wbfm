@@ -19,11 +19,11 @@ This is not strictly necessary if you know what you're doing, but we provide a c
 #### Pre-installed environments (Zimmer lab)
 
 Note: there are pre-installed environments living on the cluster, at:
-/lisc/scratch/neurobiology/zimmer/.conda/envs/wbfm
+/lisc/data/scratch/neurobiology/zimmer/.conda/envs/wbfm
 
 They can be activated using:
 ```commandline
-conda activate /lisc/scratch/neurobiology/zimmer/.conda/envs/wbfm
+conda activate /lisc/data/scratch/neurobiology/zimmer/.conda/envs/wbfm
 ```
 
 #### Creating a new conda environment

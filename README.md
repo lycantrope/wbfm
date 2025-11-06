@@ -34,7 +34,7 @@ See: [detailed installation instructions](docs/installation_instructions.md)
 
 If you just want to run the pipeline (most people), then you can use the pre-installed environments installed on the cluster, which can be activated using:
 ```
-conda activate /lisc/scratch/neurobiology/zimmer/.conda/envs/wbfm/
+conda activate /lisc/data/scratch/neurobiology/zimmer/.conda/envs/wbfm/
 ```
 
 # Running the pipeline

@@ -24,8 +24,8 @@ def resolve_mounted_path_in_current_os(raw_path: str, verbose: int = 0) -> str:
     Removes windows-specific mounted drive names (Y:, D:, etc.) and replaces them with the networked system equivalent
     Assumes that these mounting drives correspond to specific networked locations:
     - Y: -> /groups/zimmer
-    - Z: -> /scratch or /lisc/scratch
-    - S: -> /scratch or /lisc/scratch
+    - Z: -> /scratch or /lisc/data/scratch
+    - S: -> /scratch or /lisc/data/scratch
 
     Does nothing if the path is relative
 
@@ -63,7 +63,7 @@ def resolve_mounted_path_in_current_os(raw_path: str, verbose: int = 0) -> str:
         ('S:', "/lisc/data/scratch/neurobiology"),
         ('S:', "/lisc/data/scratch/neurobiology/zimmer"),
         (r'//samba.lisc.univie.ac.at/scratch', "/lisc/data/scratch"),  # Mac
-        ('/lisc/scratch', "/lisc/data/scratch")
+        ('/lisc/data/scratch', "/lisc/data/scratch")
     ]
 
     # Loop through drive name matches, and test each one
@@ -115,7 +115,7 @@ def is_absolute_in_any_os(raw_path: str) -> bool:
     return is_abs
 
 
-def correct_mounted_path_prefix(path: str, old_prefix='/scratch', new_prefix='/lisc/scratch'):
+def correct_mounted_path_prefix(path: str, old_prefix='/scratch', new_prefix='/lisc/data/scratch'):
     path = str(path)
     if path.startswith(old_prefix):
         path = path.replace(old_prefix, new_prefix)

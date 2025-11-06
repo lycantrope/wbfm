@@ -42,7 +42,7 @@ do
 done
 
 # Shared setup for each command
-conda_setup_cmd="conda activate /lisc/scratch/neurobiology/zimmer/.conda/envs/wbfm/"
+conda_setup_cmd="conda activate /lisc/data/scratch/neurobiology/zimmer/.conda/envs/wbfm/"
 
 loop_through_and_analyze_folder() {
     folder_of_projects=$1

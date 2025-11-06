@@ -10,7 +10,7 @@
 
 pwd; hostname; date
 
-CMD_DIR="/lisc/scratch/neurobiology/zimmer/wbfm/code/wbfm/wbfm/scripts"
+CMD_DIR="/lisc/data/scratch/neurobiology/zimmer/wbfm/code/wbfm/wbfm/scripts"
 CMD="${CMD_DIR}/hardcoded_protocols/check_gpu/check_gpu.py"
 
 python $CMD
