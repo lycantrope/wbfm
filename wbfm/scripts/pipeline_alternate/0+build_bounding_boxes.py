@@ -26,7 +26,7 @@ ex.add_config(project_path=None,
 def cfg(project_path, DEBUG):
     # Manually load yaml files
     cfg = ModularProjectConfig(project_path)
-    bounding_box_fname = os.path.join(cfg.project_dir, '1-segmentation', 'bounding_boxes.pickle')
+    bounding_box_fname = os.path.join(cfg.project_dir, 'dat', 'bounding_boxes.pickle')
     segment_cfg = cfg.get_segmentation_config()
 
 
