@@ -156,7 +156,7 @@ rule alt_preprocessing:
     output:
         os.path.join(project_dir, "dat/bounding_boxes.pickle")
     run:
-        _run_helper("pipeline_alternate/0+build_bounding_boxes", str(input.cfg))
+        _run_helper("pipeline_alternate.0+build_bounding_boxes", str(input.cfg))
 
 #
 # Segmentation
