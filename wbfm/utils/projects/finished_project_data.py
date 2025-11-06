@@ -2400,6 +2400,9 @@ class ProjectData:
     def check_segmentation(self):
         return (self.raw_segmentation is not None) and (self.segmentation_metadata is not None)
     
+    def check_segmentation_metadata(self):
+        return (self.segmentation_metadata is not None)
+    
     def check_tracking(self):
         return self.final_tracks is not None
     

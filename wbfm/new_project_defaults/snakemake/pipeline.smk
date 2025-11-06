@@ -99,9 +99,14 @@ else:
 
 if project_data.check_preprocessed_data():
     print("Detected completed preprocessing; allowing rules that skip preprocessing")
-    ruleorder: alt_segmentation > segmentation
+    ruleorder: alt_preprocessing > preprocessing
+    # Further check that metadata exists
+    if project_data.check_segmentation_metadata():
+        ruleorder: alt_segmentation > segmentation
+    else:
+        ruleorder: segmentation > alt_segmentation
 else:
-    ruleorder: segmentation > alt_segmentation
+    ruleorder: preprocessing > alt_preprocessing
 
 #
 # Snakemake for overall targets (either with or without behavior)
@@ -144,6 +149,15 @@ rule preprocessing:
             pass
         _run_helper("0b-preprocess_working_copy_of_data", str(input.cfg))
 
+# Already have the preprocessed data, but need to make sure that the metadata files are present
+rule alt_preprocessing:
+    input:
+        cfg=project_cfg_fname
+    output:
+        os.path.join(project_dir, "dat/bounding_boxes.pickle")
+    run:
+        _run_helper("pipeline_alternate/0+build_bounding_boxes", str(input.cfg))
+
 #
 # Segmentation
 #
@@ -158,7 +172,7 @@ rule segmentation:
     run:
         _run_helper("1-segment_video", str(input.cfg))
 
-# No input version, e.g. from nwb or remote preprocessing
+# No input version, i.e. remote preprocessing
 rule alt_segmentation:
     input: cfg=project_cfg_fname
     output:
