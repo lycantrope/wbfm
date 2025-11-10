@@ -92,6 +92,7 @@ dlc_analyze_videos:
     time: 0-08:00:00
     cpus_per_task: 24
     gres: gpu:1
+    constraint: "l40s|a30|t4|v100|l4"
 
 create_centerline:
     time: 0-12:00:00
