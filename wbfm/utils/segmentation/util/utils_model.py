@@ -11,6 +11,7 @@ import os
 from csbdeep.utils import Path, normalize
 from wbfm.utils.external.custom_errors import IncompleteConfigFileError
 from wbfm.utils.general.hardcoded_paths import load_hardcoded_neural_network_paths
+from wbfm.utils.general.utils_filenames import is_absolute_in_any_os
 
 
 def get_stardist_model(model_name: str = 'students_and_lukas_3d_zarr',
@@ -39,6 +40,11 @@ def get_stardist_model(model_name: str = 'students_and_lukas_3d_zarr',
 
     if verbose >= 1:
         print(f'Getting Stardist model: {model_name}')
+
+    # First check if a full path was given
+    if is_absolute_in_any_os(model_name):
+        folder = os.path.dirname(model_name)
+        model_name = os.path.basename(model_name)
 
     # all self-trained StarDist models reside in that folder. 'nt' for windows, when working locally
     if folder is None:
