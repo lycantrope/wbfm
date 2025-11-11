@@ -107,6 +107,7 @@ if project_data.check_preprocessed_data():
         ruleorder: segmentation > alt_segmentation
 else:
     ruleorder: preprocessing > alt_preprocessing
+    ruleorder: segmentation > alt_segmentation
 
 #
 # Snakemake for overall targets (either with or without behavior)
