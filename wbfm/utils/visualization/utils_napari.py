@@ -1,5 +1,5 @@
 from ast import Index
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, List
 
 import numpy as np
@@ -140,7 +140,7 @@ class NapariPropertyHeatMapper:
 
     red_traces: pd.DataFrame
     green_traces: pd.DataFrame
-    curvature_fluorescence_fps: pd.DataFrame = pd.DataFrame([np.nan])
+    curvature_fluorescence_fps: pd.DataFrame = field(default_factory=lambda : pd.DataFrame([np.nan]))
 
     names: List[str] = None
 
