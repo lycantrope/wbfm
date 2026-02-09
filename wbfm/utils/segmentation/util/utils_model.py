@@ -125,8 +125,8 @@ def get_stardist_model(
     elif model_name == "charlie_3d_party":
         raise NotImplementedError
         # model = StarDist3D(None, name='Charlie100-3d-party', basedir=folder)
-    elif model_name == "3DeeCellTracker":
-        model = StarDist3D(name="3DeeCellTracker", basedir=folder)
+    elif model_name == "3deecelltracker":
+        model = StarDist3D(name="3deecelltracker", basedir=folder)
     else:
         raise NameError(
             f"No StarDist model found using {model_name}! Current models are {sd_options}"
