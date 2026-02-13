@@ -125,12 +125,34 @@ def get_stardist_model(
     elif model_name == "charlie_3d_party":
         raise NotImplementedError
         # model = StarDist3D(None, name='Charlie100-3d-party', basedir=folder)
-    elif model_name == "3deecelltracker":
-        model = StarDist3D(name="3deecelltracker", basedir=folder)
     else:
-        raise NameError(
-            f"No StarDist model found using {model_name}! Current models are {sd_options}"
+        import json
+
+        from stardist.models import Config3D
+
+        model_path = Path(folder) / model_name
+        config_path = model_path / "config.json"
+        if not config_path.is_file():
+            raise NameError(f"No StarDist model found using {model_path}!")
+        # Try to load weights from candidates
+        weight_candidates = [
+            ("weights_best.keras", {}),
+            ("weights_best.h5", dict(by_name=True, skip_mismatch=True)),
+            ("weights_last.h5", dict(by_name=True, skip_mismatch=True)),
+        ]
+        model = StarDist3D(
+            config=Config3D(**json.load(config_path.open("r"))),
+            name=model_path.name,
+            basedir=model_path.parent.as_posix(),
         )
+        for _w, kws in weight_candidates:
+            _w = model_path / _w
+            if _w.is_file():
+                model.keras_model.load_weights(str(_w), **kws)
+                print(f"Load model from {_w.name}")
+                break
+        else:
+            raise NameError(f"No StarDist model found using {model_path}!")
 
     return model
 
