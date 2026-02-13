@@ -105,7 +105,8 @@ def _segment_full_video_3d(segment_cfg: ConfigFileWithProjectContext,
     opt['read_lock'] = read_lock
 
     import tensorflow as tf
-    is_cuda_gpu_available = tf.test.is_gpu_available(cuda_only=True)
+
+    is_cuda_gpu_available = tf.config.list_physical_devices("GPU")
 
     def parallel_func(_i_both):
         i_out, i_vol = _i_both
