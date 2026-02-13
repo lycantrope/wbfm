@@ -17,7 +17,9 @@ from wbfm.utils.general.utils_filenames import is_absolute_in_any_os
 
 
 def get_stardist_model(
-    model_name: str = "students_and_lukas_3d_zarr", folder: str = None, verbose: int = 0
+    model_name: str = "students_and_lukas_3d_zarr",
+    folder: str = "1-segmentation",
+    verbose: int = 0,
 ) -> stardist.models.StarDist3D:
     """
     Fetches the wanted StarDist model for segmenting images.
@@ -49,57 +51,6 @@ def get_stardist_model(
         folder = os.path.dirname(model_name)
         model_name = os.path.basename(model_name)
 
-    if folder is None and "HOME" in os.environ:
-        try:
-            model_path = os.path.join(os.environ["HOME"], model_name)
-            model_path = os.path.abspath(model_path)
-            if os.path.exists(model_path):
-                folder = os.path.dirname(model_path)
-                model_name = os.path.basename(model_path)
-        except KeyError:
-            pass
-
-    # all self-trained StarDist models reside in that folder. 'nt' for windows, when working locally
-    if folder is None:
-        try:
-            # First, try to load the model using the wbfm installed config file
-            path_dict = load_hardcoded_neural_network_paths()
-            folder = path_dict["segmentation_paths"]["model_parent_folder"]
-            _model_name = path_dict["segmentation_paths"]["model_name"]
-            if _model_name != model_name:
-                logging.warning(
-                    f"Model name from config file ({_model_name}) does not match the requested "
-                    f"model name ({model_name})! Using requested model name."
-                )
-        except IncompleteConfigFileError:
-            pass
-
-    # Deprecated: use hardcoded paths
-    if folder is None:
-        logging.warning(
-            "Using hardcoded paths for stardist models! This is deprecated and should be avoided!"
-        )
-        if os.name == "nt":
-            # folder = Path(r'P:/neurobiology/zimmer/wbfm/TrainedStardist')
-            folder = Path(r"Z:/neurobiology/zimmer/wbfm/TrainedStardist")
-        else:
-            folder = Path("/lisc/data/scratch/neurobiology/zimmer/wbfm/TrainedStardist")
-            folder_local = Path(
-                "/home/charles/Current_work/repos/segmentation/segmentation/notebooks/models"
-            )
-
-    # available models' aliases
-    sd_options = [
-        "versatile",
-        "lukas",
-        "lukas_3d_zarr",
-        "students_and_lukas_3d_zarr",
-        "lukas_3d_zarr_25",
-        "charlie",
-        "charlie_3d",
-        "charlie_3d_party",
-    ]
-
     # create aliases for each model_name
     model_name = model_name.lower()
     if model_name == "versatile":
@@ -121,7 +72,7 @@ def get_stardist_model(
     elif model_name == "lukas_3d_zarr_25":
         model = StarDist3D(None, name="Lukas3d_zarr_25percentile", basedir=folder)
     elif model_name == "lukas_3d_zarr_local":
-        model = StarDist3D(None, name="Lukas3d_zarr_local", basedir=folder_local)
+        model = StarDist3D(None, name="Lukas3d_zarr_local", basedir=folder)
     elif model_name == "charlie_3d_party":
         raise NotImplementedError
         # model = StarDist3D(None, name='Charlie100-3d-party', basedir=folder)
